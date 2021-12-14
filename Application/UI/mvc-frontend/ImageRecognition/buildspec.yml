@@ -1,0 +1,21 @@
+version: 0.2
+
+env:
+    parameter-store:
+        DOCKER_TAG: "/ImageRecognition/FrontendTag"
+        DOCKER_REPO: "/ImageRecognition/FrontendRepository"
+phases:
+  install:
+    commands:
+      - dotnet tool install -g Amazon.ECS.Tools
+  build:
+    commands:
+      - cd ./Application/UI/mvc-frontend/ImageRecognition
+      - dotnet ecs push-image --tag $DOCKER_TAG
+  post_build:
+    commands:
+      - printf '[{"name":"ImageRecognitionFrontend","imageUri":"%s"}]' $DOCKER_REPO > imagedefinitions.json
+artifacts:
+  files:
+    - ./Application/UI/mvc-frontend/ImageRecognition/imagedefinitions.json
+  discard-paths: yes

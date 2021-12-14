@@ -1,0 +1,18 @@
+version: 0.2
+
+env:
+    parameter-store:
+        S3_BUCKET: "/ImageRecognition/ImageRecognitionArtifactStore"
+phases:
+  install:
+    commands:
+      - apt-get update && apt-get install -y zip
+      - dotnet tool install -g Amazon.Lambda.Tools
+  build:
+    commands:
+      - cd ./Application/API/ImageRecognition.API
+      - /root/.dotnet/tools/dotnet-lambda package-ci --serverless-template serverless.template --output-template updated.template --s3-bucket $S3_BUCKET
+artifacts:
+  files:
+    - ./Application/API/ImageRecognition.API/updated.template
+  discard-paths: yes

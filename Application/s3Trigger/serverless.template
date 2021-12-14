@@ -1,0 +1,105 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Transform": "AWS::Serverless-2016-10-31",
+    "Description": "",
+
+   "Parameters": {
+        "TablePhoto":{
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/AppOptions/TablePhoto"
+        },
+        "StateMachineArn":{
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/AppOptions/StateMachineArn"
+        }
+    },
+
+    "Resources": {
+        
+        "PhotoStorageBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Description": "",
+            "DeletionPolicy": "Retain",
+            "Properties": {}
+        },
+
+        "S3Trigger": {
+            "Type": "AWS::Serverless::Function",
+            "Description" : "massages JSON of extracted image metadata",
+            "Properties": {
+                "PackageType": "Image",
+                "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
+                "Environment": {
+                    "Variables": {
+                        "PHOTO_TABLE": {"Ref": "TablePhoto"},
+                        "STATE_MACHINE_ARN": {"Ref": "StateMachineArn"}
+                    }
+                },
+                "ImageConfig": { "Command": [ "s3Trigger::s3Trigger.Function::FunctionHandler" ]},
+                "MemorySize": 256,
+                "Timeout": 60,
+                "ImageUri": ".",
+                "Events":{
+                    "CreatePhotoEvent":{
+                        "Type": "S3",
+                        "Properties": { 
+                            "Bucket": {"Ref": "PhotoStorageBucket"},
+                            "Events": "s3:ObjectCreated:*",
+                            "Filter": {
+                                "S3Key": {
+                                    "Rules": [{  "Name" : "prefix",  "Value" : "private/uploads"}]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "Metadata": {
+                "Dockerfile": "Dockerfile",
+                "DockerContext": ".",
+                "DockerTag": ""
+            }
+        },
+
+        "LambdaRole": {
+            "Type": "AWS::IAM::Role",
+            "Description" : "",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+                    "arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
+                ]
+            }
+        },
+
+         "ParameterPhotoStorageBucket": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the name of the S3 storage bucket to Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "PhotoStorageBucket"
+                },
+                "Name": "/ImageRecognition/AppOptions/PhotoStorageBucket"
+            }
+        }
+    }
+}

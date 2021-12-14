@@ -1,0 +1,215 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "",
+
+    "Parameters": {
+        "FrontendCluster": {
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/FrontendCluster"
+        },
+
+        "FrontendExecutionRole": {
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/FrontendExecutionRole"
+        },
+
+        "FrontendTaskRole": {
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/FrontendTaskRole"
+        },
+
+        "FrontendTag": {
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/FrontendTag"
+        },
+
+        "ECSSecurityGroup": {
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/ECSSecurityGroup"
+        },
+
+        "SubnetA": {
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/SubnetA"
+        },
+
+        "SubnetB": {
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/SubnetB"
+        },
+
+        "SubnetC": {
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/SubnetC"
+        },
+
+        "LoadBalancerName": {
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/LoadBalancerName"
+        },
+
+        "TargetGroupArn": {
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/TargetGroupArn"
+        }
+
+    },
+    "Resources": {
+
+        "FrontendLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+                "LogGroupName": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "/ecs/",
+                            {
+                                "Fn::Join": [
+                                    "",
+                                    [
+                                        {
+                                            "Ref": "AWS::StackName"
+                                        },
+                                        "-ImageRecognitionFrontend"
+                                    ]
+                                ]
+                            },
+                            "ImageRecognitionFrontend"
+                        ]
+                    ]
+                }
+            }
+        },
+
+        "FrontendTaskDefinition": {
+            "Type": "AWS::ECS::TaskDefinition",
+            "Properties": {
+                "Family": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "-ImageRecognitionFrontend"
+                        ]
+                    ]
+                },
+                "ContainerDefinitions": [
+                    {
+                        "Name": "ImageRecognitionFrontend",
+                        "Image": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::AccountId"
+                                    },
+                                    ".dkr.ecr.",
+                                    {
+                                        "Ref": "AWS::Region"
+                                    },
+                                    ".amazonaws.com/",
+                                    {
+                                        "Ref": "FrontendTag"
+                                    }
+                                ]
+                            ]
+                        },
+                        "PortMappings": [
+                            {
+                                "Protocol": "tcp",
+                                "HostPort": 80,
+                                "ContainerPort": 80
+                            }
+                        ],
+                        "LogConfiguration": {
+                            "LogDriver": "awslogs",
+                            "Options": {
+                                "awslogs-group": {
+                                    "Ref": "FrontendLogGroup"
+                                },
+                                "awslogs-region": {
+                                    "Ref": "AWS::Region"
+                                },
+                                "awslogs-stream-prefix": "ecs"
+                            }
+                        },
+                        "Environment": [
+                            {
+                                "Name": "ASPNETCORE_ENVIRONMENT",
+                                "Value": "Production"
+                            }
+                        ]
+                    }
+                ],
+                "RequiresCompatibilities": [
+                    "FARGATE",
+                    "EC2"
+                ],
+                "Cpu": "2048",
+                "Memory": "16GB",
+                "NetworkMode": "awsvpc",
+                "ExecutionRoleArn": {
+                    "Ref": "FrontendExecutionRole"
+                },
+                "TaskRoleArn": {
+                    "Ref": "FrontendTaskRole"
+                },
+                "Volumes": []
+            }
+        },
+
+        "FrontendService": {
+            "Type": "AWS::ECS::Service",
+            "Properties": {
+                "TaskDefinition": {
+                    "Ref": "FrontendTaskDefinition"
+                },
+                "Cluster": {
+                    "Ref": "FrontendCluster"
+                },
+                "LaunchType": "FARGATE",
+                "ServiceName": "Frontend",
+                "DesiredCount": 2,
+                "NetworkConfiguration": {
+                    "AwsvpcConfiguration": {
+                        "AssignPublicIp": "ENABLED",
+                        "SecurityGroups": [
+                            {
+                                "Ref": "ECSSecurityGroup"
+                            }
+                        ],
+                        "Subnets": [
+                            {
+                                "Ref": "SubnetA"
+                            },
+                            {
+                                "Ref": "SubnetB"
+                            },
+                            {
+                                "Ref": "SubnetC"
+                            }
+                        ]
+                    }
+                },
+                "DeploymentConfiguration": {
+                    "MaximumPercent": 200,
+                    "MinimumHealthyPercent": 50
+                },
+                "LoadBalancers": [
+                    {
+                        "TargetGroupArn": {
+                            "Ref": "TargetGroupArn"
+                        },
+                        "ContainerPort": 80,
+                        "ContainerName": "ImageRecognitionFrontend"
+                    }
+                ]
+            }
+        }
+
+    },
+    "Outputs": {}
+}

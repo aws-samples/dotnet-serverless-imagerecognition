@@ -1,0 +1,268 @@
+﻿@page "/album/{AlbumId}"
+@using ImageRecognition.BlazorFrontend.Models
+@using System.Collections.ObjectModel
+@using System.Threading
+@implements IDisposable
+
+@inject IServiceClientFactory ServiceClientFactory
+@inject ICommunicationClientFactory CommunicationClientFactory
+@inject NavigationManager NavigationManager
+@inject IFileUploader FileUploader
+
+<div class="ui padded grid">
+    <div class="column">
+        <div class="ui segment">
+            @if (!string.IsNullOrEmpty(Message))
+            {
+                <p>@Message</p>
+            }
+            else
+            {
+                <div class="simple-form">
+                    <div class="col-md-10 form-group">
+                        <h3 class="ui header">@AlbumWrapper?.Album.Name</h3>
+
+                        <label class="control-label">Select photos to upload.</label>
+                        <InputFile class="form-control form-control-file"
+                                   id="files"
+                                   aria-label="Upload photo"
+                                   required multiple
+                                   style="height: auto"
+                                   OnChange="OnInputFileChange"
+                                   accept=".jpg,.png"/>
+
+
+                        <button style="margin-top: 15px" @onclick="SubmitForm" class="btn btn-primary" disabled="@DisableInput">Submit</button>
+
+                        <p style="margin-top: 15px">
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="@ProgressStyle" aria-valuenow="@ProgressNow" aria-valuemin="0" aria-valuemax="@ProgressMax"></div>
+                            </div><br/>
+                            <small>@ProgressMessage</small>
+                        </p>
+
+                    </div>
+
+                    @*<button @onclick="SubmitForm" class="btn btn-primary" disabled="@DisableInput">Upload Photo</button>*@
+                </div>
+
+
+                <div>
+                    <div class="ui hidden divider"></div>
+                    <div class="ui cards">
+                        @foreach (var photo in AlbumPhotos)
+                        {
+                            if (photo.Photo.ProcessingStatus != ProcessingStatus.Succeeded)
+                            {
+                                <div class="ui card">
+                                    <div class="ui active transition visible dimmer" style="display: flex !important;">
+                                        <div class="content">
+                                            <div class="ui text loader"> Processing </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="ui card">
+                                    <div class="center aligned content">
+                                        <div>
+                                            <div style="position: relative;">
+                                                <img src="@photo.Photo.Thumbnail.Url">
+                                                <div></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="content">
+                                        <div class="meta">
+                                            <span class="date">Uploaded: @photo.Photo.UploadTime</span>
+                                        </div>
+                                        <div class="description">
+                                            <p>
+                                                <b>Detected labels:</b>
+                                            </p>
+                                            @if (photo.Photo?.ObjectDetected != null)
+                                            {
+                                                @foreach (var label in photo.Photo.ObjectDetected)
+                                                {
+                                                    <div class="ui orange basic label">@label</div>
+                                                }
+                                            }
+                                            <p><b>Image size: </b>@photo.Photo.FullSize.Height x @photo.Photo.FullSize.Width</p>
+                                            @if (photo.Photo?.GeoLocation != null)
+                                            {
+                                                <p>
+                                                    <strong>Geolocation: </strong>@photo.Photo.GeoLocation.ToString()
+                                                </p>
+                                            }
+                                            @if (photo.Photo?.ExifModel != null)
+                                            {
+                                                <p>
+                                                    <strong>Device: </strong>@photo.Photo.ExifMake @photo.Photo.ExifModel
+                                                </p>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (!Loaded)
+{
+    <p>
+        <div class="d-flex align-items-center">
+            <strong>Loading photos...</strong>
+            <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
+        </div>
+    </p>
+}
+
+@code {
+    bool Loaded { get; set; }
+    readonly ObservableCollection<PhotoWrapper> AlbumPhotos = new();
+
+    private readonly List<IBrowserFile> loadedFiles = new();
+
+    PhotoClient _photoClient;
+
+    CancellationTokenSource _cancelSource;
+    ICommunicationClient _communicationClient;
+
+    string Name { get; set; }
+
+    string SelectedGallery { get; set; }
+
+    readonly bool DisableInput = false;
+    long ProgressNow { get; set; }
+    long ProgressMax { get; } = 100;
+    string ProgressStyle { get; set; } = "width: 0%;";
+    string ProgressMessage { get; set; }
+
+    [Parameter]
+    public string AlbumId { get; set; }
+
+    public AlbumWrapper AlbumWrapper { get; set; }
+
+    public string Message { get; set; }
+
+    private readonly int maxAllowedFiles = 3;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _cancelSource = new CancellationTokenSource();
+
+        _communicationClient = await CommunicationClientFactory.CreateCommunicationClient(_cancelSource.Token);
+    }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (string.IsNullOrEmpty(AlbumId))
+        {
+            Message = "Album Id is required.";
+        }
+        else
+        {
+            var albumClient = await ServiceClientFactory.CreateAlbumClient();
+            AlbumWrapper = new AlbumWrapper(await albumClient.GetAlbumByIdAsync(AlbumId));
+
+            _photoClient = await ServiceClientFactory.CreatePhotoClient();
+            await ReloadPhotos();
+
+            _ = ReadCommunicationEvents();
+        }
+    }
+
+    async Task ReloadPhotos()
+    {
+        try
+        {
+            var photos = await _photoClient.GetPhotosByAlbumAsync(AlbumId);
+            AlbumPhotos.Clear();
+            foreach (var photo in photos)
+            {
+                AlbumPhotos.Add(new PhotoWrapper(photo));
+            }
+
+            Loaded = true;
+        }
+        catch (Exception)
+        {
+            NavigationManager.NavigateTo("Identity/Account/Login", true);
+        }
+    }
+
+    async Task ReadCommunicationEvents()
+    {
+        while (!_cancelSource.IsCancellationRequested)
+        {
+            var evnt = await _communicationClient.ReadEventAsync(_cancelSource.Token);
+            if (evnt == null)
+                continue;
+
+            foreach (var photoWrapper in AlbumPhotos)
+            {
+                if (string.Equals(photoWrapper.Photo.PhotoId, evnt.ResourceId, StringComparison.Ordinal))
+                {
+                    photoWrapper.Update(evnt);
+                    StateHasChanged();
+                }
+            }
+        }
+    }
+
+    private async Task SubmitForm()
+    {
+        long maxFileSize = 1024 * 1024 * 15;
+
+        foreach (var file in loadedFiles)
+        {
+            using (var stream = file.OpenReadStream(maxFileSize))
+            {
+                var uploadUrl = await FileUploader.UploadFileAsync(stream, evnt =>
+                {
+                    ProgressNow = evnt.UploadBytes;
+
+                    var percent = (int) (evnt.UploadBytes / (double) ProgressMax * 100.0);
+                    ProgressStyle = $"width: {percent}%;";
+
+                    ProgressMessage = $"Bytes read: {ProgressNow} / {ProgressMax}, Parts upload: {evnt.UploadParts}";
+
+                    StateHasChanged();
+                });
+
+                await _photoClient.AddPhotoAsync(AlbumId, file.Name, uploadUrl);
+            }
+        }
+
+        loadedFiles.Clear();
+        await ReloadPhotos();
+    }
+
+    private void OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles(maxAllowedFiles))
+        {
+            loadedFiles.Add(file);
+        }
+    }
+
+
+    public void Dispose()
+    {
+        if (_communicationClient != null)
+        {
+            _cancelSource.Cancel();
+            _communicationClient.Dispose();
+            _communicationClient = null;
+        }
+    }
+
+}

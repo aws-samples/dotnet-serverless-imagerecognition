@@ -1,0 +1,626 @@
+{
+	"AWSTemplateFormatVersion" : "2010-09-09",
+
+	"Description" : "",
+
+	"Parameters" : {
+		 "GitHubOwner" : {
+		     "Type" : "String",
+             "Default" : "sagulati",
+             "Description" : "GitHub repository owner"
+		 },
+		 "GitHubRepo" : {
+		     "Type" : "String",
+             "Default" : "dotnet-serverless-imagerecognition",
+             "Description" : "GitHub repository name"
+		 },
+		 "GitHubBranch" : {
+		     "Type" : "String",
+             "Default" : "main",
+             "Description" : "GitHub repository branch"
+		 },
+		 "GitHubToken" : {
+		     "Type" : "String",
+			 "Description" : "GitHub repository OAuth token"
+		 }
+	},
+
+	"Resources" : {
+
+
+		"CodePipelineRole":{
+		  "Type":"AWS::IAM::Role",
+		  "Properties":{
+			"AssumeRolePolicyDocument":{
+			  "Statement":[
+				{
+				  "Effect":"Allow",
+				  "Principal":{
+					"Service":[
+					  "codepipeline.amazonaws.com"
+					]
+				  },
+				  "Action":[
+					"sts:AssumeRole"
+				  ]
+				}
+			  ]
+			},
+			"Path":"/",
+			"ManagedPolicyArns" : [
+				"arn:aws:iam::aws:policy/AWSCodeBuildDeveloperAccess",
+				"arn:aws:iam::aws:policy/AdministratorAccess"
+			],
+			"Policies":[
+			  {
+				"PolicyName":"codepipeline-service",
+				"PolicyDocument":{
+				  "Statement":[
+					{
+					  "Action":[
+						"codecommit:GetBranch",
+						"codecommit:GetCommit",
+						"codecommit:UploadArchive",
+						"codecommit:GetUploadArchiveStatus",
+						"codecommit:CancelUploadArchive"
+					  ],
+					  "Resource":"*",
+					  "Effect":"Allow"
+					}
+				  ],
+				  "Version":"2012-10-17"
+				}
+			  }
+			]
+		  }
+		},
+
+        "CodeBuildRole" : {
+            "Type" : "AWS::IAM::Role",
+            "Properties" : {
+                "AssumeRolePolicyDocument" : {
+				  "Statement":[
+					{
+					  "Effect":"Allow",
+					  "Principal":{
+						"Service":[
+						  "codebuild.amazonaws.com"
+						]
+					  },
+					  "Action":[
+						"sts:AssumeRole"
+					  ]
+					}
+				  ]
+                },
+                "ManagedPolicyArns" : [
+					"arn:aws:iam::aws:policy/PowerUserAccess"
+				]
+            }
+        },
+
+        "CloudFormationRole" : {
+            "Type" : "AWS::IAM::Role",
+            "Properties" : {
+                "AssumeRolePolicyDocument" : {
+				  "Statement":[
+					{
+					  "Effect":"Allow",
+					  "Principal":{
+						"Service":[
+						  "cloudformation.amazonaws.com"
+						]
+					  },
+					  "Action":[
+						"sts:AssumeRole"
+					  ]
+					}
+				  ]
+                },
+                "ManagedPolicyArns" : [
+					"arn:aws:iam::aws:policy/AdministratorAccess"
+				]
+            }
+        },
+
+		"FrontendCluster": {
+            "Type": "AWS::ECS::Cluster",
+            "Description": "",
+            "Properties": {
+                "ClusterName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "Frontend"
+                        ]
+                    ]
+                }
+            }
+        },
+
+		"ParameterFrontendCluster": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ID of the cluster defined for our Fargate instances into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "FrontendCluster"
+                },
+                "Name": "/ImageRecognition/FrontendCluster"
+            }
+        },
+
+		"ImageRecognitionArtifactStore" : {
+		    "Type" : "AWS::S3::Bucket",
+		    "Properties" : {
+		    }
+		},
+
+		"ParameterImageRecognitionArtifactStore" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : {"Ref" : "ImageRecognitionArtifactStore"},
+                "Name" : "/ImageRecognition/ImageRecognitionArtifactStore"
+            }
+        },
+
+		"S3TriggerLambdaFunctionBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-S3TriggerLambdaFunctionBuild" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_SMALL",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/standard:5.0",
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Application/s3Trigger/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
+		"ImageRecognitionStepFunctionsBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ImageRecognitionStepFunctions" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_SMALL",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/standard:5.0",
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Application/StepFunctions/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+		
+		"PhotoCommunicationsBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-Communications" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_SMALL",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/standard:5.0",
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Application/Communication/ImageRecognition.Communication.Functions/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+		
+		"ImageRecognitionAPIBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-API" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/standard:5.0",                    
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Application/API/ImageRecognition.API/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
+		"ImageRecognitionFrontendBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-Blazor" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/standard:5.0",                    
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Application/UI/Blazor/ImageRecognition/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
+        "Pipeline" : {
+            "Type" : "AWS::CodePipeline::Pipeline",
+            "Properties" : {
+                "ArtifactStore" : {
+                    "Location" : { "Ref" : "ImageRecognitionArtifactStore" },
+                    "Type"     : "S3"
+                },
+                "RoleArn"       : {"Fn::GetAtt" : [ "CodePipelineRole", "Arn"]},
+                "Stages"        : [
+					{
+						"Name" : "Source",
+                        "Actions" : [
+							{
+							"Name": "GitHub",
+							"ActionTypeId": {
+							  "Category": "Source",
+							  "Version": "1",
+							  "Owner": "ThirdParty",
+							  "Provider": "GitHub"
+							},
+							"Configuration": {
+							  "Owner": {
+								"Ref": "GitHubOwner"
+							  },
+							  "Repo": {
+								"Ref": "GitHubRepo"
+							  },
+							  "Branch": {
+								"Ref": "GitHubBranch"
+							  },
+							  "OAuthToken": {
+								"Ref": "GitHubToken"
+							  }
+							},
+							"InputArtifacts": [
+                  
+							],
+							"OutputArtifacts": [
+							  {
+								"Name": "TheSource"
+							  }
+							],
+							"RunOrder": 1
+						  }
+						]
+					},
+					{
+						"Name" : "ImageRecognition-Infrastructure",
+                        "Actions" : [
+							{
+								"Name" : "CF-ImageRecognition-Infrastructure",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CREATE_UPDATE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-Infrastructure" ] ]},
+									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "TheSource::Application/CloudFormationTemplates/imagerecognition-resources.template"
+								},
+                                "RunOrder" : 1
+							}
+						]
+					},
+					{
+						"Name" : "Photo-Communications",
+                        "Actions" : [
+							{
+								"Name" : "Build-Communications",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "PhotoCommunicationsBundle"
+									}
+								],
+								"Configuration" : {
+									"ProjectName" : { "Ref" : "PhotoCommunicationsBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "CF-PhotoCommunications",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "PhotoCommunicationsBundle"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CREATE_UPDATE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-Communications" ] ]},
+									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "PhotoCommunicationsBundle::updated.template"
+								},
+                                "RunOrder" : 2
+							}
+						]
+					},
+					{
+						"Name" : "ImageRecognition-Render-Step-Function",
+                        "Actions" : [
+							{
+								"Name" : "Build-ImageRecognitionStepFunctions",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "ImageRecognitionStepFunctionsBundle"
+									}
+								],
+								"Configuration" : {
+									"ProjectName" : { "Ref" : "ImageRecognitionStepFunctionsBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "CF-ImageRecognitionStepFunctions",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "ImageRecognitionStepFunctionsBundle"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CREATE_UPDATE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-StepFunctions" ] ]},
+									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "ImageRecognitionStepFunctionsBundle::updated.template"
+								},
+                                "RunOrder" : 2
+							}
+						]
+					},
+					{
+						"Name" : "ImageRecognition-S3Trigger-LambdaFunction",
+                        "Actions" : [
+							{
+								"Name" : "Build-S3TriggerLambdaFunctions",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "S3TriggerLambdaFunctionBuild"
+									}
+								],
+								"Configuration" : {
+									"ProjectName" : { "Ref" : "S3TriggerLambdaFunctionBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "CF-S3TriggerLambdaFunction",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "S3TriggerLambdaFunctionBuild"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CREATE_UPDATE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-S3TriggerLambdaFunction" ] ]},
+									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "S3TriggerLambdaFunctionBuild::updated.template"
+								},
+                                "RunOrder" : 2
+							}
+						]
+					},
+					{
+						"Name" : "ImageRecognition-API",
+                        "Actions" : [
+							{
+								"Name" : "Build-API",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "ImageRecognitionAPIBundle"
+									}
+								],
+								"Configuration" : {
+									"ProjectName" : { "Ref" : "ImageRecognitionAPIBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "CF-ImageRecognitionAPI",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "ImageRecognitionAPIBundle"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CREATE_UPDATE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-API" ] ]},
+									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "ImageRecognitionAPIBundle::updated.template"
+								},
+                                "RunOrder" : 2
+							}
+						]
+					},
+					{
+						"Name" : "ImageRecognition-BlazorFrontend",
+                        "Actions" : [
+							{
+								"Name" : "Build-BlazorFrontend",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "ImageRecognitionBlazorBundle"
+									}
+								],
+                                "Configuration" : {
+									"ProjectName" : { "Ref" : "ImageRecognitionFrontendBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "Create-ECSService",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CREATE_UPDATE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ECSFrontend" ] ]},
+									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "TheSource::Application/UI/Blazor/ImageRecognition/ECS-Service.template"
+								},
+                                "RunOrder" : 2
+							},
+							{
+								"Name" : "Deploy-BlazorFrontend",
+                                "ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "ECS",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "ImageRecognitionBlazorBundle"
+									}
+								],
+                                "Configuration" : {
+									"ClusterName" : { "Ref" : "FrontendCluster" },
+									"ServiceName":  "Frontend",
+									"FileName":  "imagedefinitions.json"
+								},
+								"RunOrder" : 3
+							}
+						]
+					}
+                ]
+            }
+        }
+	},
+
+	"Outputs" : {
+	}
+}

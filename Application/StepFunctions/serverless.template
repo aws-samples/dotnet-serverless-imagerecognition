@@ -1,0 +1,333 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Transform": "AWS::Serverless-2016-10-31",
+    "Description": "Defines an AWS Step Functions state machine, together with the Lambda functions used as tasks when the state machine runs. See state-machine.json for the actual machine definition.",
+
+    "Parameters": {
+        "TablePhoto":{
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/AppOptions/TablePhoto"
+        },
+        "Stage": {
+            "Type" : "String",
+            "Description": "Environment stage or git branch",
+            "Default" : "Development"
+        },
+        "CommunicationConnectionsTable" : {
+		    "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/ImageRecognition/AppOptions/TableCommunicationConnection"
+		}
+    },
+
+    "Resources": {
+        "TransformMetadataFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Description" : "massages JSON of extracted image metadata",
+            "Properties": {
+                "PackageType": "Image",
+                "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
+                "Environment": {
+                    "Variables": {
+                        "COMMUNICATION_CONNECTION_TABLE": {"Ref": "CommunicationConnectionsTable"}
+                    }
+                },
+                "ImageConfig": { "Command": [ "transform-metadata::transform_metadata.Function::FunctionHandler" ]},
+                "MemorySize": 256,
+                "Timeout": 60,
+                "Code": {
+                    "ImageUri": "./transform-metadata"
+                }
+            },
+            "Metadata": {
+                "Dockerfile": "Dockerfile",
+                "DockerContext": ".",
+                "DockerTag": ""
+            }
+        },
+        "ExtractImageMetadataFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Description" : "Extract image metadata such as format, size, geolocation, etc.",
+            "Properties": {
+                "PackageType": "Image",
+                "Environment": {
+                    "Variables": {
+                        "COMMUNICATION_CONNECTION_TABLE": {"Ref": "CommunicationConnectionsTable"}
+                    }
+                },
+                "ImageConfig": { "Command": [ "extract-image-metadata::extract_image_metadata.Function::FunctionHandler" ]},
+                "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
+                "MemorySize": 1024,
+                "Timeout": 200,
+                "Code": {
+                    "ImageUri": "./extract-image-metadata"
+                }
+            },
+            "Metadata": {
+                "Dockerfile": "Dockerfile",
+                "DockerContext": ".",
+                "DockerTag": ""
+            }
+        },
+        "StoreImageMetadataFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Description" : "Store image metadata into database",
+            "Properties": {
+                "PackageType": "Image",
+                "ImageConfig": { "Command": [ "store-image-metadata::store_image_metadata.Function::FunctionHandler" ]},
+                "Role": { "Fn::GetAtt": ["StoreMetaDataFunctionRole", "Arn"] },
+                "MemorySize": 512,
+                "Code": {
+                    "ImageUri": "./store-image-metadata"
+                },
+                "Environment": {
+                    "Variables": {
+                        "PHOTO_TABLE": {"Ref": "TablePhoto"},
+                        "COMMUNICATION_CONNECTION_TABLE": {"Ref": "CommunicationConnectionsTable"}
+                    }
+                }
+            },
+            "Metadata": {
+                "Dockerfile": "Dockerfile",
+                "DockerContext": ".",
+                "DockerTag": ""
+            }
+        },
+        "RekognitionFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Description" : "Use Amazon Rekognition to detect labels from image",
+            "Properties": {
+                "PackageType": "Image",
+                "Environment": {
+                    "Variables": {
+                        "COMMUNICATION_CONNECTION_TABLE": {"Ref": "CommunicationConnectionsTable"}
+                    }
+                },
+                "ImageConfig": { "Command": [ "rekognition::rekognition.Function::FunctionHandler" ]},
+                "Role": { "Fn::GetAtt": ["RekognitionFunctionRole", "Arn"] },
+                "MemorySize": 1536,
+                "Timeout": 300,
+                "Code": {
+                    "ImageUri": "./rekognition"
+                }
+            },
+            "Metadata": {
+                "Dockerfile": "Dockerfile",
+                "DockerContext": ".",
+                "DockerTag": ""
+            }
+        },
+        "GenerateThumbnailFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Description" : "Generate thumbnails for images",
+            "Properties": {
+                "PackageType": "Image",
+                "Environment": {
+                    "Variables": {
+                        "COMMUNICATION_CONNECTION_TABLE": {"Ref": "CommunicationConnectionsTable"}
+                    }
+                },
+                "ImageConfig": { "Command": [ "thumbnail::thumbnail.Function::FunctionHandler" ]},
+                "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
+                "MemorySize": 1536,
+                "Timeout": 300,
+                 "Code": {
+                    "ImageUri": "./thumbnail"
+                }
+            },
+            "Metadata": {
+                "Dockerfile": "Dockerfile",
+                "DockerContext": ".",
+                "DockerTag": ""
+            }
+        },
+        
+        "StateMachine": {
+            "Type": "AWS::StepFunctions::StateMachine",
+            "Description" : "",
+            "Properties": {
+                "RoleArn": {
+                    "Fn::GetAtt": [
+                        "StateMachineRole",
+                        "Arn"
+                    ]
+                },
+                "DefinitionString": {
+                    "Fn::Sub": ""
+                },
+                "StateMachineName":"PhotoProcessingWorkflow-dotnet"
+
+            }
+        },
+
+        "RekognitionFunctionRole": {
+            "Type": "AWS::IAM::Role",
+            "Description" : "",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess"
+                ],
+                "Policies": [
+                    {
+                        "PolicyName": "StepFunctionLambdaInvoke",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "s3:GetObject",
+                                        "s3:ListBucket",
+                                        "s3:GetBucketLocation",
+                                        "s3:GetObjectVersion",
+                                        "s3:GetLifecycleConfiguration",
+                                        "rekognition:DetectFaces",
+                                        "rekognition:DetectLabels",
+                                        "rekognition:DetectModerationLabels",
+                                        "rekognition:DetectText"
+                                    ],
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+
+        "StoreMetaDataFunctionRole": {
+            "Type": "AWS::IAM::Role",
+            "Description" : "",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess",
+                    "arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess"
+                ]
+            }
+        },
+
+        "LambdaRole": {
+            "Type": "AWS::IAM::Role",
+            "Description" : "",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+                    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess"
+                ]
+            }
+        },
+
+        "StateMachineRole": {
+            "Type": "AWS::IAM::Role",
+            "Description" : "",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": {
+                                    "Fn::Sub": "states.${AWS::Region}.amazonaws.com"
+                                }
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "StepFunctionLambdaInvoke",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "lambda:InvokeFunction"
+                                    ],
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+
+        "ParameterStateMachineArn": {
+            "Type": "AWS::SSM::Parameter",
+            "Description" : "",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "StateMachine"
+                },
+                "Name": "/ImageRecognition/AppOptions/StateMachineArn"
+            }
+        }
+    },
+
+    "Outputs": {
+        "StateMachineArn": {
+			"Description" : "",
+            "Value": {
+                "Ref": "StateMachine"
+            }
+        }
+
+    }
+}

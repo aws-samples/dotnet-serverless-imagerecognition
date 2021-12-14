@@ -1,0 +1,88 @@
+﻿@page "/"
+
+@inject IServiceClientFactory ServiceClientFactory
+@inject NavigationManager NavigationManager
+
+<div class="col-md-12 ui segment form-group">
+    <h3 class="ui header">Add a new album</h3>
+    <div class="form-group">
+        <input class="form-control" type="text" @bind="@AlbumName" id="name" aria-label="Album name" placeholder="Album name" required/>
+    </div>
+    <button class="btn btn-primary" @onclick="SubmitForm">New album</button>
+</div>
+
+<div class="ui segment">
+    <h3 class="ui header">My Albums</h3>
+    <div role="list" class="ui divided relaxed list">
+
+        @if (UserAlbums != null)
+        {
+            @foreach (var userAlbum in UserAlbums)
+            {
+                <div role="listitem" class="item">
+                    <a href="/album/@userAlbum.AlbumId/">@userAlbum.Name</a>
+                </div>
+            }
+        }
+
+    </div>
+</div>
+
+@if (!Loaded)
+{
+    <p>
+        <div class="d-flex align-items-center">
+            <strong>Loading albums...</strong>
+            <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
+        </div>
+    </p>
+}
+
+@code {
+
+    bool Loaded { get; set; }
+    readonly List<Album> UserAlbums = new();
+
+    public string AlbumName { get; set; }
+
+    AlbumClient _albumClient;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _albumClient = await ServiceClientFactory.CreateAlbumClient();
+
+        await LoadAlbums();
+    }
+
+    async Task LoadAlbums()
+    {
+        try
+        {
+            var albums = await _albumClient.GetUserAlbumsAsync();
+            foreach (var album in albums)
+            {
+                UserAlbums.Add(album);
+            }
+
+            Loaded = true;
+        }
+        catch (Exception)
+        {
+            NavigationManager.NavigateTo("Identity/Account/Login", true);
+        }
+    }
+
+    async Task SubmitForm()
+    {
+        var createAlbumResult = await _albumClient.CreateAlbumAsync(AlbumName);
+
+        var album = new Album
+        {
+            Name = AlbumName,
+            AlbumId = createAlbumResult.AlbumId
+        };
+
+        UserAlbums.Add(album);
+    }
+
+}
