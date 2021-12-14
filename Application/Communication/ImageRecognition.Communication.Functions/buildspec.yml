@@ -1,0 +1,17 @@
+version: 0.2
+
+env:
+    parameter-store:
+        S3_BUCKET: "/ImageRecognition/ImageRecognitionArtifactStore"
+phases:
+  install:
+    commands:
+      - dotnet tool install -g Amazon.Lambda.Tools
+  build:
+    commands:
+      - cd ./Application/Communication/ImageRecognition.Communication.Functions
+      - dotnet lambda package-ci --config-file codebuild-defaults.json --serverless-template serverless.template --output-template updated.template --s3-bucket $S3_BUCKET --s3-prefix ImageRecognition.Communication.Functions
+artifacts:
+  files:
+    - ./Application/Communication/ImageRecognition.Communication.Functions/updated.template
+  discard-paths: yes

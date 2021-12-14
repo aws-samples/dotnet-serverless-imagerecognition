@@ -1,0 +1,702 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Stands up resources needed to support the ImageRecognition demo application.",
+
+    "Parameters": {
+        "DnsName" : {
+		    "Type" : "String",
+            "Default" : "",
+            "MinLength" : "0",
+            "Description" : "Optional DNS Host name that is assigned to the load balancer."
+		},
+
+		"LoadbalancerCertificateArn" : {
+		    "Type" : "String",
+            "Default" : "",
+            "MinLength" : "0",
+            "Description" : "Optional certificate arn from ACM. If set an HTTPS listner will be configured."
+		}
+    },
+
+    "Conditions" : {
+		"UseHttps" : {
+		   "Fn::Not" : [{
+			  "Fn::Equals" : [
+				 {"Ref" : "LoadbalancerCertificateArn"},
+				 ""
+			  ]
+		   }]
+		},
+
+		"HasDnsName" : {
+		   "Fn::Not" : [{
+			  "Fn::Equals" : [
+				 {"Ref" : "DnsName"},
+				 ""
+			  ]
+		   }]
+		}
+	},
+
+    "Resources": {
+
+        "TableAlbum": {
+            "Type": "AWS::DynamoDB::Table",
+            "Description": "",
+            "Properties": {
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "AlbumId",
+                        "AttributeType": "S"
+                    },
+                    {
+                        "AttributeName": "UserId",
+                        "AttributeType": "S"
+                    }
+                ],
+                "KeySchema": [
+                    {
+                        "AttributeName": "UserId",
+                        "KeyType": "HASH"
+                    },
+                    {
+                        "AttributeName": "AlbumId",
+                        "KeyType": "RANGE"
+                    }
+                ],
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": "10",
+                    "WriteCapacityUnits": "1"
+                },
+                "TableName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "Album"
+                        ]
+                    ]
+                }
+            }
+        },
+
+        "TablePhoto": {
+            "Type": "AWS::DynamoDB::Table",
+            "Description": "",
+            "Properties": {
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "PhotoId",
+                        "AttributeType": "S"
+                    },
+                    {
+                        "AttributeName": "AlbumId",
+                        "AttributeType": "S"
+                    },
+                    {
+                        "AttributeName": "UploadTime",
+                        "AttributeType": "S"
+                    }
+                ],
+                "GlobalSecondaryIndexes": [
+                    {
+                        "IndexName" : "albumID-uploadTime-index",
+                        "KeySchema" : [ 
+                            {
+                                "AttributeName": "AlbumId",
+                                "KeyType": "HASH"
+                            },
+                            {
+                                "AttributeName": "UploadTime",
+                                "KeyType": "RANGE"
+                            }
+                        ],
+                        "Projection" : {"ProjectionType" : "ALL"},
+                        "ProvisionedThroughput" : {
+                            "ReadCapacityUnits": "30",
+                            "WriteCapacityUnits": "30"
+                        }
+                    }
+                ],
+                "KeySchema": [
+                    {
+                        "AttributeName": "PhotoId",
+                        "KeyType": "HASH"
+                    }
+                ],
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": "30",
+                    "WriteCapacityUnits": "30"
+                },
+                "TableName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "Photo"
+                        ]
+                    ]
+                }
+            }
+        },
+
+		"FrontendCluster": {
+            "Type": "AWS::ECS::Cluster",
+            "Description": "",
+            "Properties": {
+                "ClusterName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "Frontend"
+                        ]
+                    ]
+                }
+            }
+        },
+
+		"ImageRecognitionArtifactStore" : {
+		    "Type" : "AWS::S3::Bucket",
+		    "Properties" : {
+		    }
+		},
+
+        "PhotoStorageBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Description": "",
+            "Properties": {}
+        },
+
+        "FrontendRepository": {
+            "Type": "AWS::ECR::Repository",
+            "Description": "Repository holding the deployed web application images.",
+            "Properties": {}
+        },
+
+        "ImageRecognitionVpc": {
+            "Type": "AWS::EC2::VPC",
+            "Description": "Virtual Private Cloud to hold the running application and resources.",
+            "Properties": {
+                "CidrBlock": "10.0.0.0/16",
+                "Tags" : [
+                    {
+                        "Key" : "Name",
+                        "Value" : {
+                            "Ref": "AWS::StackName"
+                        }
+                    }
+                ]
+            }
+        },
+
+        "SubnetA": {
+            "Type": "AWS::EC2::Subnet",
+            "Description": "Public subnet",
+            "Properties": {
+                "CidrBlock": "10.0.0.0/24",
+                "VpcId": {
+                    "Ref": "ImageRecognitionVpc"
+                },
+                "MapPublicIpOnLaunch": "True",
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "0",
+                        {
+                            "Fn::GetAZs": ""
+                        }
+                    ]
+                }
+            }
+        },
+
+        "SubnetB": {
+            "Type": "AWS::EC2::Subnet",
+            "Description": "Public subnet",
+            "Properties": {
+                "CidrBlock": "10.0.1.0/24",
+                "VpcId": {
+                    "Ref": "ImageRecognitionVpc"
+                },
+                "MapPublicIpOnLaunch": "True",
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "1",
+                        {
+                            "Fn::GetAZs": ""
+                        }
+                    ]
+                }
+            }
+        },
+
+        "InternetGateway": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Description": "Gateway to provides connectivity to and from the internet for the VPC.",
+            "Properties": {}
+        },
+
+        "VPCGatewayAttachment": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Description": "Attach the internet gateway resource to the VPC",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "ImageRecognitionVpc"
+                },
+                "InternetGatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            }
+        },
+
+        "RouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Description": "Route table for the VPC.",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "ImageRecognitionVpc"
+                }
+            }
+        },
+
+        "Route": {
+            "Type": "AWS::EC2::Route",
+            "Description": "Route permitting non-local traffic to egress to the internet from the VPC.",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTable"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            }
+        },
+
+        "SubnetARouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Description": "Route table association to permit traffic in subnet to reach gateway.",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "SubnetA"
+                }
+            }
+        },
+
+        "SubnetBRouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Description": "Route table association to permit traffic in subnet to reach gateway.",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "SubnetB"
+                }
+            }
+        },
+
+        "FrontendTaskRole": {
+            "Type": "AWS::IAM::Role",
+            "Description": "Role permissions to be used by instances surfacing the web application.",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2008-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "ecs-tasks.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+                    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess",
+                    "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess",
+                    "arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonCognitoPowerUser"
+                ],
+                "Policies": [ 
+                    {
+                        "PolicyName": "PutDataProtectionParameter",
+                        "PolicyDocument": {
+                            "Version" : "2012-10-17",
+                            "Statement": [ 
+                                {
+                                    "Effect": "Allow",
+                                    "Action": "ssm:PutParameter",
+                                    "Resource": "arn:aws:ssm:*:*:parameter/ImageRecognition/DataProtection/*"
+                                } 
+                            ]
+                        }
+                    } 
+                ]
+            }
+        },
+
+        "FrontendExecutionRole": {
+            "Type": "AWS::IAM::Role",
+            "Description": "",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2008-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "ecs-tasks.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+                    "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+                ]
+            }
+        },
+
+        "ECSSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Description": "Security group controlling access to the containers surfacing our web application front end.",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "ImageRecognitionVpc"
+                },
+                "GroupDescription": "Security Group for the ECS Service",
+                "SecurityGroupIngress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": "80",
+                        "ToPort": "80",
+                        "IpProtocol": "tcp"
+                    }
+                ]
+            }
+        },
+
+        "LoadBalancer": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Description": "",
+            "Properties": {
+                "Type": "application",
+                "IpAddressType": "ipv4",
+                "Scheme": "internet-facing",
+                "SecurityGroups": [
+                    {
+                        "Ref": "ECSSecurityGroup"
+                    }
+                ],
+                "Subnets": [
+                    {
+                        "Ref": "SubnetA"
+                    },
+                    {
+                        "Ref": "SubnetB"
+                    }
+                ]
+            }
+        },
+
+        "HttpListener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Description": "",
+            "Properties": {
+                "DefaultActions": [
+                    {
+                        "TargetGroupArn": {
+                            "Ref": "DefaultTargetGroup"
+                        },
+                        "Type": "forward"
+                    }
+                ],
+                "LoadBalancerArn": {
+                    "Ref": "LoadBalancer"
+                },
+                "Port": "80",
+                "Protocol": "HTTP"
+            }
+        },
+
+        "HttpsListener" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::Listener",
+            "Condition" : "UseHttps",
+            "Properties" : {
+                "DefaultActions": [
+                    {
+                        "TargetGroupArn": {
+                            "Ref": "DefaultTargetGroup"
+                        },
+                        "Type": "forward"
+                    }
+                ],
+                "LoadBalancerArn": {
+                    "Ref": "LoadBalancer"
+                },
+                "Port"            : "443",
+                "Protocol"        : "HTTPS",
+                "Certificates" : [
+					{"CertificateArn" : { "Ref" : "LoadbalancerCertificateArn" }}
+				]
+            }
+        },
+
+        "DefaultTargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Description": "",
+            "Properties": {
+                "Port": "80",
+                "Protocol": "HTTP",
+                "TargetGroupAttributes": [
+					{"Key" : "stickiness.enabled", "Value" : "true" },
+					{"Key" : "stickiness.type", "Value" : "lb_cookie" }
+				],
+                "Targets": [],
+                "VpcId": {
+                    "Ref": "ImageRecognitionVpc"
+                },
+                "TargetType": "ip",				
+                "Name": "ImageRecognition-Default"
+            }
+        },
+
+        "ParameterTableAlbum": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the name of the DynamoDB table holding details of processed galleries to Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "TableAlbum"
+                },
+                "Name": "/ImageRecognition/AppOptions/TableAlbum"
+            }
+        },
+
+        "ParameterTablePhoto": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the name of the DynamoDB table holding gallery items to Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "TablePhoto"
+                },
+                "Name": "/ImageRecognition/AppOptions/TablePhoto"
+            }
+        },
+
+        "ParameterFrontendCluster": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ID of the cluster defined for our Fargate instances into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "FrontendCluster"
+                },
+                "Name": "/ImageRecognition/FrontendCluster"
+            }
+        },
+
+        "ParameterImageRecognitionArtifactStore" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : {"Ref" : "ImageRecognitionArtifactStore"},
+                "Name" : "/ImageRecognition/ImageRecognitionArtifactStore"
+            }
+        },
+
+        "ParameterPhotoStorageBucket": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the name of the S3 storage bucket to Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "PhotoStorageBucket"
+                },
+                "Name": "/ImageRecognition/AppOptions/PhotoStorageBucket"
+            }
+        },
+
+        "ParameterECSSecurityGroup": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ID of the security group for our Fargate instances into Parameter Store",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "ECSSecurityGroup"
+                },
+                "Name": "/ImageRecognition/ECSSecurityGroup"
+            }
+        },
+
+        "ParameterVpc": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ID of the VPC into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "ImageRecognitionVpc"
+                },
+                "Name": "/ImageRecognition/Vpc"
+            }
+        },
+
+        "ParameterLoadBalancerHost": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "The host of the load balancer.",
+            "Properties": {
+                "Type": "String",
+                "Name": "/ImageRecognition/LoadBalancerHost",
+                "Value" : { "Fn::If" : ["HasDnsName", {"Fn::Join" : [ "", ["https://", {"Ref" : "DnsName" }, "/"]]}, {"Fn::Join" : [ "", ["http://", {"Fn::GetAtt" : [ "LoadBalancer", "DNSName"]}, "/" ] ]}] }
+            }
+        },
+
+        "ParameterLoadBalancerListener": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ID of the VPC into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Name": "/ImageRecognition/LoadBalancerListener",
+                "Value" : { "Fn::If" : ["UseHttps", {"Ref": "HttpsListener"}, {"Ref": "HttpListener"}] }
+            }
+        },
+
+        "ParameterSubnetA": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ID of a one of our subnets for our Fargate instances into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "SubnetA"
+                },
+                "Name": "/ImageRecognition/SubnetA"
+            }
+        },
+
+        "ParameterSubnetB": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ID of a one of our subnets for our Fargate instances into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "SubnetB"
+                },
+                "Name": "/ImageRecognition/SubnetB"
+            }
+        },
+
+        "ParameterFrontendRepository": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the url of the repository holding container images of our web application front end into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            {
+                                "Ref": "AWS::AccountId"
+                            },
+                            ".dkr.ecr.",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ".amazonaws.com/",
+                            {
+                                "Ref": "FrontendRepository"
+                            },
+                            ":latest"
+                        ]
+                    ]
+                },
+                "Name": "/ImageRecognition/FrontendRepository"
+            }
+        },
+
+        "ParameterFrontendTag": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Fn::Join" : [
+                        "", [
+                            { "Ref": "FrontendRepository" },
+                            ":latest"
+                        ]
+                    ]
+                },
+                "Name": "/ImageRecognition/FrontendTag"
+            }
+        },
+
+        "ParameterFrontendExecutionRole": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Store the ARN of the role created for instance(s) surfacing our web application front end into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "FrontendExecutionRole"
+                },
+                "Name": "/ImageRecognition/FrontendExecutionRole"
+            }
+        },
+
+        "ParameterFrontendTaskRole": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "FrontendTaskRole"
+                },
+                "Name": "/ImageRecognition/FrontendTaskRole"
+            }
+        },
+
+        "ParameterLoadBalancerName": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "LoadBalancer"
+                },
+                "Name": "/ImageRecognition/LoadBalancerName"
+            }
+        },
+
+        "ParameterTargetGroupArn": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "DefaultTargetGroup"
+                },
+                "Name": "/ImageRecognition/TargetGroupArn"
+            }
+        }
+    },
+
+    "Outputs": {
+        
+    }
+}

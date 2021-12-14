@@ -1,0 +1,18 @@
+version: 0.2
+
+env:
+  parameter-store:
+    S3_BUCKET: "/ImageRecognition/ImageRecognitionArtifactStore"
+phases:
+  install:
+    commands:
+      - dotnet tool install -g Amazon.Lambda.Tools
+      - export PATH="$PATH:/root/.dotnet/tools"
+  build:
+    commands:
+      - cd ./Application/s3Trigger
+      - dotnet lambda package-ci --serverless-template serverless.template --output-template updated.template --s3-bucket $S3_BUCKET --s3-prefix s3Trigger
+artifacts:
+  files:
+    - ./Application/s3Trigger/updated.template
+  discard-paths: yes

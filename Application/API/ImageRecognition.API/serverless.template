@@ -1,0 +1,157 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Description": "An AWS Serverless Application that uses the ASP.NET Core framework running in Amazon Lambda.",
+  
+  "Parameters" : {
+		"ApplicationLoadBalancerHost" : {
+		    "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/ImageRecognition/LoadBalancerHost"
+		},
+		"ApplicationLoadBalancerListener" : {
+		    "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/ImageRecognition/LoadBalancerListener"
+		}
+
+	},
+
+  "Conditions": {},
+  "Resources": {
+
+      "LambdaRole": {
+            "Type": "AWS::IAM::Role",
+            "Description" : "",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+				    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+				    "arn:aws:iam::aws:policy/AmazonSSMFullAccess",
+				    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+				    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+				    "arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess"
+                ],
+                "Policies" : [
+					
+			    ]
+            }
+        },
+        
+        "AspNetCoreFunction": {
+          "Type": "AWS::Lambda::Function",
+          "Properties": {
+                "PackageType": "Image",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaRole",
+                        "Arn"
+                    ]
+                },
+                "ImageConfig": { "Command": [ "ImageRecognition.API::ImageRecognition.API.LambdaEntryPoint::FunctionHandlerAsync" ]},
+                "MemorySize": 1024,
+                "Timeout": 30,
+                "Code": {
+                    "ImageUri": "."
+                }
+            },
+            "Metadata": {
+                "Dockerfile": "Dockerfile",
+                "DockerContext": ".",
+                "DockerTag": ""
+            }
+        },
+        "ALBLambdaPermission" : {
+            "Type" : "AWS::Lambda::Permission",
+            "Properties" : {
+                "Action" : "lambda:InvokeFunction",
+                "FunctionName" : {"Fn::GetAtt" : [ "AspNetCoreFunction", "Arn"]},
+                "Principal"    : "elasticloadbalancing.amazonaws.com"
+            }
+        },
+
+        "ApiTargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "DependsOn" : "ALBLambdaPermission",
+            "Description": "",
+            "Properties": {
+				"HealthCheckEnabled" : true,
+                "HealthCheckPath" : "/swagger/index.html",
+                "HealthCheckIntervalSeconds" : 60,
+                "Targets": [
+					{
+						"Id" : {"Fn::GetAtt" : [ "AspNetCoreFunction", "Arn"]}
+					}
+				],
+                "TargetType": "lambda",				
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "Api"
+                        ]
+                    ]
+                }
+            }
+         },
+
+        "ApiListenerRule" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::ListenerRule",
+            "Properties" : {
+                "Actions" : [
+					{
+						"Type" : "forward",
+                        "TargetGroupArn" : { "Ref" : "ApiTargetGroup" }
+					}
+                ],
+                "Conditions" : [
+					{
+						"Field" : "path-pattern",
+						"PathPatternConfig" : {
+							"Values" : [
+								"/api/*",
+								"/swagger",
+								"/swagger/*"
+							]
+						}
+					}
+                ],
+                "ListenerArn" : { "Ref" : "ApplicationLoadBalancerListener" },
+                "Priority"    : "100"
+            }
+        },
+
+        "ParameterImageRecognitionApiUrl": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "",
+            "Properties": {
+                "Type": "String",
+                "Value": { "Ref" : "ApplicationLoadBalancerHost" },
+                "Name": "/ImageRecognition/AppOptions/ImageRecognitionApiUrl"
+            }
+        }
+      },
+
+    "Outputs" : {
+	"SwaggerEndpoint" : {
+		"Description" : "API endpoint URL for Prod environment",
+		"Value" : { "Fn::Sub" : "${ApplicationLoadBalancerHost}swagger" }
+	    }
+    }
+}
