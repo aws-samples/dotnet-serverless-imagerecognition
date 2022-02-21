@@ -595,7 +595,7 @@
             "Description": "Stores the name of the UserPoolClient.",
             "Properties": {
                 "Type": "String",
-                "Value": {"Fn::GetAtt" : [ "CognitoUserPoolClient", "ClientSecret"]},
+                "Value": {"Fn::GetAtt" : [ "UserPoolClient", "ClientSecret"]},
                 "Name": "/ImageRecognition/AWS/UserPoolClientSecret"
             }
         },
