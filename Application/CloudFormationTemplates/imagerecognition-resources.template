@@ -532,6 +532,74 @@
             }
         },
 
+        "UserPool": {
+            "Type": "AWS::Cognito::UserPool"
+            "Properties":{
+                "UserPoolName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "user-pool"
+                        ]
+                    ]
+                }
+            }
+        },
+
+        "UserPoolClient":{
+            "Type": "AWS::Cognito::UserPoolClient"
+            "Properties":{
+                "ClientName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "web-client"
+                        ]
+                    ]
+                },
+                "GenerateSecret": false
+                UserPoolId: {"Ref": "UserPool"}
+            }
+        },
+
+        "ParameterUserPool": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the name of the UserPool for application.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "UserPool"
+                },
+                "Name": "/ImageRecognition/AWS/UserPoolId"
+            }
+        },
+        "ParameterUserPoolClient": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the name of the UserPoolClient.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "UserPoolClient"
+                },
+                "Name": "/ImageRecognition/AWS/UserPoolClientId"
+            }
+        },
+        "ParameterUserPoolClientSecret": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the name of the UserPoolClient.",
+            "Properties": {
+                "Type": "String",
+                "Value": {"Fn::GetAtt" : [ "CognitoUserPoolClient", "ClientSecret"]},
+                "Name": "/ImageRecognition/AWS/UserPoolClientSecret"
+            }
+        },
+
         "ParameterTableAlbum": {
             "Type": "AWS::SSM::Parameter",
             "Description": "Stores the name of the DynamoDB table holding details of processed galleries to Parameter Store.",
