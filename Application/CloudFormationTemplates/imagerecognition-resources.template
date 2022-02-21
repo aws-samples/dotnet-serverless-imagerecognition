@@ -563,8 +563,8 @@
                         ]
                     ]
                 },
-                "GenerateSecret": false
-                UserPoolId: {"Ref": "UserPool"}
+                "GenerateSecret": false,
+                "UserPoolId": {"Ref": "UserPool"}
             }
         },
 
