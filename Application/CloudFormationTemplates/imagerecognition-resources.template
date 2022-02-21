@@ -533,7 +533,7 @@
         },
 
         "UserPool": {
-            "Type": "AWS::Cognito::UserPool"
+            "Type": "AWS::Cognito::UserPool",
             "Properties":{
                 "UserPoolName": {
                     "Fn::Join": [
@@ -550,7 +550,7 @@
         },
 
         "UserPoolClient":{
-            "Type": "AWS::Cognito::UserPoolClient"
+            "Type": "AWS::Cognito::UserPoolClient",
             "Properties":{
                 "ClientName": {
                     "Fn::Join": [
