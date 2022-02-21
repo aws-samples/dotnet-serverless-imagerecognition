@@ -563,7 +563,7 @@
                         ]
                     ]
                 },
-                "GenerateSecret": false,
+                "GenerateSecret": true,
                 "UserPoolId": {"Ref": "UserPool"}
             }
         },
