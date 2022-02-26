@@ -44,7 +44,6 @@
             "Type": "AWS::Lambda::Function",
             "Description" : "Extract image metadata such as format, size, geolocation, etc.",
             "Properties": {
-                "PackageType": "Image",
                 "Environment": {
                     "Variables": {
                         "COMMUNICATION_CONNECTION_TABLE": {"Ref": "CommunicationConnectionsTable"}
@@ -65,7 +64,6 @@
             "Type": "AWS::Lambda::Function",
             "Description" : "Store image metadata into database",
             "Properties": {
-                "PackageType": "Image",
                 "Handler": "store-image-metadata::store_image_metadata.Function::FunctionHandler",
                 "Role": { "Fn::GetAtt": ["StoreMetaDataFunctionRole", "Arn"] },
                 "MemorySize": 512,
@@ -86,7 +84,6 @@
             "Type": "AWS::Lambda::Function",
             "Description" : "Use Amazon Rekognition to detect labels from image",
             "Properties": {
-                "PackageType": "Image",
                 "Environment": {
                     "Variables": {
                         "COMMUNICATION_CONNECTION_TABLE": {"Ref": "CommunicationConnectionsTable"}
@@ -107,7 +104,6 @@
             "Type": "AWS::Lambda::Function",
             "Description" : "Generate thumbnails for images",
             "Properties": {
-                "PackageType": "Image",
                 "Environment": {
                     "Variables": {
                         "COMMUNICATION_CONNECTION_TABLE": {"Ref": "CommunicationConnectionsTable"}

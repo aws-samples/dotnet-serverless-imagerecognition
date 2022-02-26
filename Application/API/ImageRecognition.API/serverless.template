@@ -54,7 +54,6 @@
         "AspNetCoreFunction": {
           "Type": "AWS::Lambda::Function",
           "Properties": {
-                "PackageType": "Image",
                 "Role": {
                     "Fn::GetAtt": [
                         "LambdaRole",
