@@ -14,7 +14,7 @@
   "function-timeout": 30,
   "image-command":
     "ImageRecognition.Communication.Functions::ImageRecognition.Communication.Functions.Functions::OnConnect",
-  "docker-host-build-output-dir": "./bin/Release/net5.0/linux-x64/publish",
+  "docker-host-build-output-dir": "./bin/Release/net6.0/linux-x64/publish",
   "template": "serverless.template",
   "template-parameters": "",
   "stack-name": "ImageRecognitionCommunication",

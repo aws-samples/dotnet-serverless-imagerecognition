@@ -12,7 +12,7 @@
   "function-memory-size": 256,
   "function-timeout": 30,
   "image-command": "ImageRecognition.API::ImageRecognition.API.LambdaEntryPoint::FunctionHandlerAsync",
-  "docker-host-build-output-dir": "./bin/Release/net5.0/linux-x64/publish",
+  "docker-host-build-output-dir": "./bin/Release/net6.0/linux-x64/publish",
   "template": "serverless.template",
   "stack-name": "ImageRecognitionAPI",
   "s3-prefix": "image-recognition/api",
