@@ -1,6 +1,6 @@
 FROM public.ecr.aws/lambda/dotnet:6 AS base
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim as build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 as build
 WORKDIR /src
 COPY ["ImageRecognition.Communication.Functions.csproj", "."]
 RUN dotnet restore "./ImageRecognition.Communication.Functions.csproj"
