@@ -61,17 +61,14 @@
                         "Arn"
                     ]
                 },
-                "ImageConfig": { "Command": [ "ImageRecognition.API::ImageRecognition.API.LambdaEntryPoint::FunctionHandlerAsync" ]},
+                "Handler": "ImageRecognition.API::ImageRecognition.API.LambdaEntryPoint::FunctionHandlerAsync",
                 "MemorySize": 1024,
                 "Timeout": 30,
+                "Runtime":"dotnet6",
                 "Code": {
-                    "ImageUri": "."
+                    "S3Bucket": "",
+                    "S3Key": "."
                 }
-            },
-            "Metadata": {
-                "Dockerfile": "Dockerfile",
-                "DockerContext": ".",
-                "DockerTag": ""
             }
         },
         "ALBLambdaPermission" : {

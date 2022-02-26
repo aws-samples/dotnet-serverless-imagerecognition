@@ -8,8 +8,8 @@
   "profile": "",
   "region": "",
   "configuration": "Release",
-  "package-type": "image",
+  "function-runtime": "dotnet6",
   "function-memory-size": 256,
   "function-timeout": 30,
-  "image-command": "extract-image-metadata::extract_image_metadata.Function::FunctionHandler"
+  "function-handler": "extract-image-metadata::extract_image_metadata.Function::FunctionHandler"
 }

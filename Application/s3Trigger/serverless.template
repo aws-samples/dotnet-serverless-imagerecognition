@@ -27,7 +27,6 @@
             "Type": "AWS::Serverless::Function",
             "Description" : "massages JSON of extracted image metadata",
             "Properties": {
-                "PackageType": "Image",
                 "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
                 "Environment": {
                     "Variables": {
@@ -35,10 +34,11 @@
                         "STATE_MACHINE_ARN": {"Ref": "StateMachineArn"}
                     }
                 },
-                "ImageConfig": { "Command": [ "s3Trigger::s3Trigger.Function::FunctionHandler" ]},
+                "Handler": "s3Trigger::s3Trigger.Function::FunctionHandler",
                 "MemorySize": 256,
                 "Timeout": 60,
-                "ImageUri": ".",
+                "CodeUri": ".",
+                "Runtime":"dotnet6",
                 "Events":{
                     "CreatePhotoEvent":{
                         "Type": "S3",
@@ -53,11 +53,6 @@
                         }
                     }
                 }
-            },
-            "Metadata": {
-                "Dockerfile": "Dockerfile",
-                "DockerContext": ".",
-                "DockerTag": ""
             }
         },
 

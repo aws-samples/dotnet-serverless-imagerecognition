@@ -24,24 +24,20 @@
             "Type": "AWS::Lambda::Function",
             "Description" : "massages JSON of extracted image metadata",
             "Properties": {
-                "PackageType": "Image",
                 "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
                 "Environment": {
                     "Variables": {
                         "COMMUNICATION_CONNECTION_TABLE": {"Ref": "CommunicationConnectionsTable"}
                     }
                 },
-                "ImageConfig": { "Command": [ "transform-metadata::transform_metadata.Function::FunctionHandler" ]},
+                "Handler": "transform-metadata::transform_metadata.Function::FunctionHandler",
                 "MemorySize": 256,
                 "Timeout": 60,
+                "Runtime":"dotnet6",
                 "Code": {
-                    "ImageUri": "./transform-metadata"
+                    "S3Bucket": "",
+                    "S3Key": "./transform-metadata"
                 }
-            },
-            "Metadata": {
-                "Dockerfile": "Dockerfile",
-                "DockerContext": ".",
-                "DockerTag": ""
             }
         },
         "ExtractImageMetadataFunction": {
@@ -54,18 +50,15 @@
                         "COMMUNICATION_CONNECTION_TABLE": {"Ref": "CommunicationConnectionsTable"}
                     }
                 },
-                "ImageConfig": { "Command": [ "extract-image-metadata::extract_image_metadata.Function::FunctionHandler" ]},
+                "Handler": "extract-image-metadata::extract_image_metadata.Function::FunctionHandler",
                 "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
                 "MemorySize": 1024,
                 "Timeout": 200,
+                "Runtime":"dotnet6",
                 "Code": {
-                    "ImageUri": "./extract-image-metadata"
+                    "S3Bucket": "",
+                    "S3Key": "./extract-image-metadata"
                 }
-            },
-            "Metadata": {
-                "Dockerfile": "Dockerfile",
-                "DockerContext": ".",
-                "DockerTag": ""
             }
         },
         "StoreImageMetadataFunction": {
@@ -73,11 +66,13 @@
             "Description" : "Store image metadata into database",
             "Properties": {
                 "PackageType": "Image",
-                "ImageConfig": { "Command": [ "store-image-metadata::store_image_metadata.Function::FunctionHandler" ]},
+                "Handler": "store-image-metadata::store_image_metadata.Function::FunctionHandler",
                 "Role": { "Fn::GetAtt": ["StoreMetaDataFunctionRole", "Arn"] },
                 "MemorySize": 512,
+                "Runtime":"dotnet6",
                 "Code": {
-                    "ImageUri": "./store-image-metadata"
+                    "S3Bucket": "",
+                    "S3Key": "./store-image-metadata"
                 },
                 "Environment": {
                     "Variables": {
@@ -85,11 +80,6 @@
                         "COMMUNICATION_CONNECTION_TABLE": {"Ref": "CommunicationConnectionsTable"}
                     }
                 }
-            },
-            "Metadata": {
-                "Dockerfile": "Dockerfile",
-                "DockerContext": ".",
-                "DockerTag": ""
             }
         },
         "RekognitionFunction": {
@@ -102,18 +92,15 @@
                         "COMMUNICATION_CONNECTION_TABLE": {"Ref": "CommunicationConnectionsTable"}
                     }
                 },
-                "ImageConfig": { "Command": [ "rekognition::rekognition.Function::FunctionHandler" ]},
+                "Handler": "rekognition::rekognition.Function::FunctionHandler",
                 "Role": { "Fn::GetAtt": ["RekognitionFunctionRole", "Arn"] },
                 "MemorySize": 1536,
                 "Timeout": 300,
+                "Runtime":"dotnet6",
                 "Code": {
-                    "ImageUri": "./rekognition"
+                    "S3Bucket": "",
+                    "S3Key": "./rekognition"
                 }
-            },
-            "Metadata": {
-                "Dockerfile": "Dockerfile",
-                "DockerContext": ".",
-                "DockerTag": ""
             }
         },
         "GenerateThumbnailFunction": {
@@ -126,18 +113,15 @@
                         "COMMUNICATION_CONNECTION_TABLE": {"Ref": "CommunicationConnectionsTable"}
                     }
                 },
-                "ImageConfig": { "Command": [ "thumbnail::thumbnail.Function::FunctionHandler" ]},
+                "Handler": "thumbnail::thumbnail.Function::FunctionHandler",
                 "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
                 "MemorySize": 1536,
                 "Timeout": 300,
+                "Runtime":"dotnet6",
                  "Code": {
-                    "ImageUri": "./thumbnail"
+                    "S3Bucket": "",
+                    "S3Key": "./thumbnail"
                 }
-            },
-            "Metadata": {
-                "Dockerfile": "Dockerfile",
-                "DockerContext": ".",
-                "DockerTag": ""
             }
         },
         

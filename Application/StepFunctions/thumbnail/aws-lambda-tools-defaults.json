@@ -8,9 +8,9 @@
   "profile": "",
   "region": "",
   "configuration": "Release",
-  "package-type": "image",
+  "function-runtime": "dotnet6",
   "function-memory-size": 256,
   "function-timeout": 30,
-  "image-command": "thumbnail::thumbnail.Function::FunctionHandler",
+  "function-handler": "thumbnail::thumbnail.Function::FunctionHandler",
   "docker-host-build-output-dir": "./bin/Release/net6.0/linux-x64/publish"
 }

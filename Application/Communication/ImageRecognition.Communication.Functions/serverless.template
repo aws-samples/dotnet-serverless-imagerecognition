@@ -81,11 +81,11 @@
 		"OnConnectFunction" : {
 			"Type" : "AWS::Serverless::Function",
 			"Properties": {
-                "PackageType": "Image",
-				"ImageConfig": { "Command": [ "ImageRecognition.Communication.Functions::ImageRecognition.Communication.Functions.Functions::OnConnect"]},
+				"Handler": "ImageRecognition.Communication.Functions::ImageRecognition.Communication.Functions.Functions::OnConnect",
 				"MemorySize": 512,
 				"Timeout": 30,
-                "ImageUri": ".",
+                "CodeUri": ".",
+                "Runtime":"dotnet6",
 				"Role": null,
                 "Policies" : [
 					"arn:aws:iam::aws:policy/AWSLambda_FullAccess",
@@ -98,22 +98,16 @@
 						"LAMBDA_NET_SERIALIZER_DEBUG" : "false"
 					}					
 				}
-			},
-            "Metadata": {
-                "Dockerfile": "Dockerfile",
-                "DockerContext": ".",
-                "DockerTag": ""
-            }
+			}
 		},
 
 		"OnDisconnectFunction" : {
 			"Type" : "AWS::Serverless::Function",
 			"Properties": {
-                "PackageType": "Image",
-				"ImageConfig": { "Command": [ "ImageRecognition.Communication.Functions::ImageRecognition.Communication.Functions.Functions::OnDisconnect"]},
+				"Handler": "ImageRecognition.Communication.Functions::ImageRecognition.Communication.Functions.Functions::OnDisconnect",
 				"MemorySize": 128,
 				"Timeout": 30,
-                "ImageUri": ".",
+                "CodeUri": ".",
 				"Role": null,
                 "Policies" : [
                     "arn:aws:iam::aws:policy/AWSLambda_FullAccess",
@@ -125,12 +119,7 @@
 						"LAMBDA_NET_SERIALIZER_DEBUG" : "false"
 					}					
 				}
-			},
-            "Metadata": {
-                "Dockerfile": "Dockerfile",
-                "DockerContext": ".",
-                "DockerTag": ""
-            }
+			}
 		},
 
         "ConnectPermission" : {
