@@ -109,6 +109,7 @@
 				"Timeout": 30,
                 "CodeUri": ".",
 				"Role": null,
+                "Runtime":"dotnet6",
                 "Policies" : [
                     "arn:aws:iam::aws:policy/AWSLambda_FullAccess",
                     "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
