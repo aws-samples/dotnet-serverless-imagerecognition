@@ -7,7 +7,7 @@ env:
 phases:
   install:
     commands:
-      - curl https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-6.0.200-linux-x64-binaries -o dotnet-sdk-6.tar.gz
+      - curl https://download.visualstudio.microsoft.com/download/pr/807f9d72-4940-4b1a-aa4a-8dbb0f73f5d7/cb666c22a87bf9413f29615e0ba94500/dotnet-sdk-6.0.200-linux-x64.tar.gz -o dotnet-sdk-6.tar.gz
       - mkdir -p $HOME/dotnet && tar zxf dotnet-sdk-6.tar.gz -C $HOME/dotnet
       - export DOTNET_ROOT=$HOME/dotnet
       - export PATH=$HOME/dotnet:$PATH
