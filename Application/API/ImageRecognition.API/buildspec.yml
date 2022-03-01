@@ -6,6 +6,10 @@ env:
 phases:
   install:
     commands:
+      - curl $DOTNET_SDK_URL -o dotnet-sdk-6.tar.gz
+      - mkdir -p $HOME/dotnet && tar zxf dotnet-sdk-6.tar.gz -C $HOME/dotnet
+      - export DOTNET_ROOT=$HOME/dotnet
+      - export PATH=$HOME/dotnet:$PATH
       - apt-get update && apt-get install -y zip
       - dotnet tool install -g Amazon.Lambda.Tools
   build:
