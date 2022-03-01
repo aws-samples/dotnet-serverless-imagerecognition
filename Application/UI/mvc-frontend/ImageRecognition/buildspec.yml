@@ -7,8 +7,11 @@ env:
 phases:
   install:
     commands:
-      - curl https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
-      - ./dotnet-install.sh -c 6.0
+      - curl https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-6.0.200-linux-x64-binaries -o dotnet-sdk-6.tar.gz
+      - mkdir -p $HOME/dotnet && tar zxf dotnet-sdk-6.tar.gz -C $HOME/dotnet
+      - export DOTNET_ROOT=$HOME/dotnet
+      - export PATH=$HOME/dotnet:$PATH
+      - apt-get update && apt-get install -y zip
       - dotnet tool install -g Amazon.ECS.Tools
   build:
     commands:
