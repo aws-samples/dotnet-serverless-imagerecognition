@@ -1,12 +1,14 @@
 version: 0.2
 
 env:
-  parameter-store:
-    S3_BUCKET: "/ImageRecognition/ImageRecognitionArtifactStore"
+   variables:
+        DOTNET_SDK_URL: "https://download.visualstudio.microsoft.com/download/pr/807f9d72-4940-4b1a-aa4a-8dbb0f73f5d7/cb666c22a87bf9413f29615e0ba94500/dotnet-sdk-6.0.200-linux-x64.tar.gz"
+   parameter-store:
+        S3_BUCKET: "/ImageRecognition/ImageRecognitionArtifactStore"
 phases:
   install:
     commands:
-      - curl https://download.visualstudio.microsoft.com/download/pr/807f9d72-4940-4b1a-aa4a-8dbb0f73f5d7/cb666c22a87bf9413f29615e0ba94500/dotnet-sdk-6.0.200-linux-x64.tar.gz -o dotnet-sdk-6.tar.gz
+      - curl $DOTNET_SDK_URL -o dotnet-sdk-6.tar.gz
       - mkdir -p $HOME/dotnet && tar zxf dotnet-sdk-6.tar.gz -C $HOME/dotnet
       - export DOTNET_ROOT=$HOME/dotnet
       - export PATH=$HOME/dotnet:$PATH
