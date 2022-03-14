@@ -22,9 +22,9 @@ Alternatively the Docker file could be written to use [multi-stage](https://docs
 have the .NET project built inside the container. Below is an example of building .NET 5 project inside the image.
 
 ```dockerfile
-FROM ecr.aws/lambda/dotnet:5.0 AS base
+FROM ecr.aws/lambda/dotnet:6.0 AS base
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim as build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 as build
 WORKDIR /src
 COPY ["store-image-metadata.csproj", "store-image-metadata/"]
 RUN dotnet restore "store-image-metadata/store-image-metadata.csproj"

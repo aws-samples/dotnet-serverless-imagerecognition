@@ -532,6 +532,172 @@
             }
         },
 
+        "UserPool": {
+            "Type": "AWS::Cognito::UserPool",
+            "Properties":{
+                "UserPoolName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "user-pool"
+                        ]
+                    ]
+                }
+            }
+        },
+
+        "UserPoolClient":{
+            "Type": "AWS::Cognito::UserPoolClient",
+            "Properties":{
+                "ClientName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "web-client"
+                        ]
+                    ]
+                },
+                "GenerateSecret": true,
+                "UserPoolId": {"Ref": "UserPool"}
+            }
+        },
+
+        "ParameterUserPool": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the name of the UserPool for application.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "UserPool"
+                },
+                "Name": "/ImageRecognition/AWS/UserPoolId"
+            }
+        },
+        "ParameterUserPoolClient": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the name of the UserPoolClient.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "UserPoolClient"
+                },
+                "Name": "/ImageRecognition/AWS/UserPoolClientId"
+            }
+        },
+
+        "UserPoolClientLambdaRole":{
+		  "Type":"AWS::IAM::Role",
+		  "Properties":{
+			"AssumeRolePolicyDocument":{
+			  "Statement":[
+				{
+				  "Effect":"Allow",
+				  "Principal":{
+					"Service":[
+					  "lambda.amazonaws.com"
+					]
+				  },
+				  "Action":[
+					"sts:AssumeRole"
+				  ]
+				}
+			  ]
+			},
+			"Path":"/",
+			"Policies":[
+			  {
+				"PolicyName":"userpoolclient-lambda-role",
+				"PolicyDocument":{
+				  "Statement":[
+					{
+					  "Action":[
+						"cognito-idp:DescribeUserPoolClient",
+						"logs:CreateLogGroup",
+						"logs:CreateLogStream",
+						"logs:PutLogEvents"
+					  ],
+					  "Resource":"*",
+					  "Effect":"Allow"
+					}
+				  ],
+				  "Version":"2012-10-17"
+				}
+			  }
+			]
+		  }
+		},
+
+        "UserPoolClientLambda":
+        {
+            "Type": "AWS::Lambda::Function",
+            "Properties":{
+                "Code":{
+                    "ZipFile": {
+                        "Fn::Join": [
+                            "\n",
+                            [
+                                "const response = require('cfn-response');",
+                                "const aws = require('aws-sdk');",
+                                "const identity = new aws.CognitoIdentityServiceProvider();",
+                                "exports.handler = (event, context, callback) => {",
+                                " if (event.RequestType == 'Delete') { ",
+                                "   response.send(event, context, response.SUCCESS, {})",
+                                " }",
+                                " if (event.RequestType == 'Update' || event.RequestType == 'Create') {",
+                                "   const params = {",
+                                "     ClientId: event.ResourceProperties.clientId,",
+                                "     UserPoolId: event.ResourceProperties.userpoolId",
+                                "   };",
+                                "   identity.describeUserPoolClient(params).promise()",
+                                "     .then((res) => {",
+                                "       response.send(event, context, response.SUCCESS, {'appSecret': res.UserPoolClient.ClientSecret});",
+                                "     })",
+                                "     .catch((err) => {",
+                                "       response.send(event, context, response.FAILED, {err});",
+                                "     });",
+                                " }",
+                                "};"
+                            ]
+                        ]
+                    }
+                },
+                "Handler": "index.handler",
+                "Runtime": "nodejs14.x",
+                "Timeout": "300",
+                "Role": {
+                    "Fn::GetAtt" : [ "UserPoolClientLambdaRole", "Arn"]
+                }
+            },
+            "DependsOn": "UserPoolClientLambdaRole"
+        },
+        "UserPoolClientInputs":{
+            "Type": "Custom::LambdaCallout",
+            "Properties":{
+                "ServiceToken": {"Fn::GetAtt" : [ "UserPoolClientLambda", "Arn"]},
+                "clientId": {"Ref": "UserPoolClient"},
+                "userpoolId": {"Ref": "UserPool"}
+            },
+            "DependsOn": "UserPoolClientLambda"
+        },
+        "ParameterUserPoolClientSecret": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the name of the UserPoolClientSecret.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Fn::GetAtt" : [ "UserPoolClientInputs", "appSecret"]
+                    },
+                "Name": "/ImageRecognition/AWS/UserPoolClientSecret"
+            },
+            "DependsOn": "UserPoolClientInputs"
+        },
+
         "ParameterTableAlbum": {
             "Type": "AWS::SSM::Parameter",
             "Description": "Stores the name of the DynamoDB table holding details of processed galleries to Parameter Store.",

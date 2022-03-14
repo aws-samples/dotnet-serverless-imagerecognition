@@ -1,4 +1,3 @@
-
 {
   "Information": [
     "This file provides default values for the deployment wizard inside Visual Studio and the AWS Lambda commands added to the .NET Core CLI.",
@@ -9,12 +8,11 @@
   "profile": "",
   "region": "",
   "configuration": "Release",
-  "package-type": "image",
+  "function-runtime": "dotnet6",
   "function-memory-size": 256,
   "function-timeout": 30,
-  "image-command":
-    "ImageRecognition.Communication.Functions::ImageRecognition.Communication.Functions.Functions::OnConnect",
-  "docker-host-build-output-dir": "./bin/Release/net5.0/linux-x64/publish",
+  "function-handler": "ImageRecognition.Communication.Functions::ImageRecognition.Communication.Functions.Functions::OnConnect",
+  "docker-host-build-output-dir": "./bin/Release/net6.0/linux-x64/publish",
   "template": "serverless.template",
   "template-parameters": "",
   "stack-name": "ImageRecognitionCommunication",

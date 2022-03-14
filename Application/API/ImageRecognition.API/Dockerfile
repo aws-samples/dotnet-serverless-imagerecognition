@@ -1,6 +1,6 @@
-FROM public.ecr.aws/lambda/dotnet:5.0 AS base
+FROM public.ecr.aws/lambda/dotnet:6 AS base
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim as build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 as build
 WORKDIR /src
 COPY ["ImageRecognition.API.csproj", "."]
 RUN dotnet restore "./ImageRecognition.API.csproj"

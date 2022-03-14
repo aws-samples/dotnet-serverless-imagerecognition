@@ -7,7 +7,7 @@
   ],
   "profile": "",
   "region": "",
-  "package-type": "image",
+  "function-runtime": "dotnet6",
   "configuration": "Release",
   "template": "serverless.template",
   "template-parameters": "",

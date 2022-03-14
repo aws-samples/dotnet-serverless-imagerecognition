@@ -59,54 +59,6 @@ Follow these instructions to deploy the application (both backend and frontend):
     > 
     > before clicking **"Create stack"**
 
-## Setup the Amazon Cognito User Pool
-
-While the stack is being created, setup a new Amazon Cognito User Pool. This user pool will be used to users to register and login to the sample application when it is deployed. Create the user pool by following the instructions below.
-
-1. Navigate to the console home page in the [AWS Management Console](https://console.aws.amazon.com/)
-    * Select *Services* and enter the text **Cognito** into the search bar.
-    * Click the resulting entry that is returned.
-1. Click **Manage User Pools**
-1. Click **Create a user pool**
-1. Give the pool a name, then click **Review defaults**
-1. Click **Add app client...**
-1. Enter a name for the client (for example *ImageRecognitionWebUI*), leave the rest of the settings at their default values and then click **Create app client**.
-1. Click **Return to pool details**.
-1. Click **Create pool**.
-1. After the pool has been created make a note of the following values:
-    * From the *General Settings* page:
-        * **User Pool id**
-
-        ![User pool id](Images/UserPoolSettings1.png)
-
-    * From the App Clients page (click *App clients* in left-hand navigation pane to view this page):
-        * **App client id**
-        * **App client secret** (click *Show Details* to view)
-
-        ![User pool id](Images/UserPoolSettings2.png)
-
-## Record the user pool details in Systems Manager's Parameter Store
-
-The web front-end for the application will retrieve the details of the user pool for user management at run time, by making calls to [Systems Manager's Parameter Store](https://aws.amazon.com/systems-manager/features/#Parameter_Store). Parameter Store is a simple key-value store that can be used to store both plain text and secure string values. In this section you will create three parameters to hold the data identifying the user pool for the application to use.
-
-1. Navigate to the Systems Manager dashboard in the [AWS Management Console](https://console.aws.amazon.com/)
-    * Select *Services* and enter the text **Systems** into the search field.
-    * Select *Systems Manager* from the results.
-1. From the Systems Manager dashboard, scroll through the options on the left navigation panel and select *Parameter Store*.
-1. Create three parameters, one by one, for the user pool values you made a note of above, as follows:
-
-    * From the Parameter Store home, click **Create parameter**
-    * For the parameter name, enter **/ImageRecognition/AWS/UserPoolId**
-    * Set the parameter type to be *String*
-    * For the parameter value, enter the value you recorded for *User pool id* above, then click **Create parameter** to finish. For example:
-
-        ![Parameter store](Images/ParameterStore.png)
-
-
-    * Repeat the process to create a second parameter. This time set the parameter name to be **/ImageRecognition/AWS/UserPoolClientId**, the parameter type to be *String* and the value should be set to the *App client id* value you recorded above.
-    * Repeat the process a final time to create the third parameter. For parameter name, enter **/ImageRecognition/AWS/UserPoolClientSecret**. For the parameter type, select *SecureString*. Leave the *KMS key source* and *KMS Key ID* fields at their defaults. In the Value field, enter the value of the *App client secret* you recorded earlier.
-
-
 # Using the test web app
 ### Sign up and log in
 1. Go to the URL of the deployed app.

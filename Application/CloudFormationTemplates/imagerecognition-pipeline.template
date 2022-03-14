@@ -6,7 +6,7 @@
 	"Parameters" : {
 		 "GitHubOwner" : {
 		     "Type" : "String",
-             "Default" : "sagulati",
+             "Default" : "aws-samples",
              "Description" : "GitHub repository owner"
 		 },
 		 "GitHubRepo" : {
@@ -21,6 +21,7 @@
 		 },
 		 "GitHubToken" : {
 		     "Type" : "String",
+			 "Default": "",
 			 "Description" : "GitHub repository OAuth token"
 		 }
 	},
