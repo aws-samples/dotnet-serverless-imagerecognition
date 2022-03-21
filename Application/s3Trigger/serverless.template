@@ -27,6 +27,7 @@
             "Type": "AWS::Serverless::Function",
             "Description" : "massages JSON of extracted image metadata",
             "Properties": {
+                "Tracing": "Active",
                 "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
                 "Environment": {
                     "Variables": {
@@ -80,7 +81,8 @@
                     "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
                     "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
                     "arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess",
-                    "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
+                    "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess",
+                    "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
                 ]
             }
         },

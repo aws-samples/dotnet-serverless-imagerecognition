@@ -74,7 +74,10 @@
             "Properties" : {
                 "ApiId" : { "Ref" : "CommunicationAPI" },
                 "DeploymentId" : { "Ref" : "CommunicationDeployment" },
-                "StageName"    : "Prod"
+                "StageName"    : "Prod",
+                "DefaultRouteSettings":{
+                    "DataTraceEnabled": true
+                }
             }
         },
 
