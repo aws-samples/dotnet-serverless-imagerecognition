@@ -145,8 +145,39 @@
                             {
                                 "Name": "ASPNETCORE_ENVIRONMENT",
                                 "Value": "Production"
+                            },
+                            {
+                                "Name": "AWS_XRAY_DAEMON_ADDRESS",
+                                "Value": "xray-sidecar:2000"
                             }
                         ]
+                    },
+                    {
+                        "Environment": [],
+                        "Name": "xray-sidecar",
+                        "MountPoints": [],
+                        "Image": "amazon/aws-xray-daemon",
+                        "Cpu": 32,
+                        "MemoryReservation": 256,
+                        "PortMappings": [
+                            {
+                                "Protocol": "udp",
+                                "ContainerPort": 2000,
+                                "HostPort": 2000
+                            }
+                        ],
+                        "LogConfiguration": {
+                            "LogDriver": "awslogs",
+                            "Options": {
+                                "awslogs-group": {
+                                    "Ref": "FrontendLogGroup"
+                                },
+                                "awslogs-region": {
+                                    "Ref": "AWS::Region"
+                                },
+                                "awslogs-stream-prefix": "ecs"
+                            }
+                        }
                     }
                 ],
                 "RequiresCompatibilities": [

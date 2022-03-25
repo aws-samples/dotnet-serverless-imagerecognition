@@ -277,6 +277,9 @@
                         }
                     ]
                 },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
+                ],
                 "Policies": [
                     {
                         "PolicyName": "StepFunctionLambdaInvoke",
