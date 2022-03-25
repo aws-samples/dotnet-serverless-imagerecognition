@@ -26,12 +26,12 @@ namespace store_image_metadata
 
         public Function()
         {
+            AWSSDKHandler.RegisterXRayForAllServices();
+
             AWSConfigsDynamoDB.Context
                 .AddMapping(new TypeMapping(typeof(Photo), Environment.GetEnvironmentVariable(PHOTO_TABLE)));
 
             _ddbContext = new DynamoDBContext(_ddbClient);
-
-            AWSSDKHandler.RegisterXRayForAllServices();
         }
 
         /// <summary>

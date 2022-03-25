@@ -30,8 +30,9 @@ namespace rekognition
 
         public Function()
         {
-            RekognitionClient = new AmazonRekognitionClient();
             AWSSDKHandler.RegisterXRayForAllServices();
+
+            RekognitionClient = new AmazonRekognitionClient();
 
             var environmentMinConfidence = Environment.GetEnvironmentVariable(MIN_CONFIDENCE_ENVIRONMENT_VARIABLE_NAME);
             if (!string.IsNullOrWhiteSpace(environmentMinConfidence))

@@ -18,8 +18,8 @@ namespace extract_image_metadata
     {
         public Function()
         {
-            S3Client = new AmazonS3Client();
             AWSSDKHandler.RegisterXRayForAllServices();
+            S3Client = new AmazonS3Client();
         }
 
         private IAmazonS3 S3Client { get; }
