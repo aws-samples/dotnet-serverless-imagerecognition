@@ -32,14 +32,14 @@ namespace s3Trigger
 
         public Function()
         {
+            AWSSDKHandler.RegisterXRayForAllServices();
+
             StateMachineArn = Environment.GetEnvironmentVariable(STATE_MACHINE_ARN);
 
             AWSConfigsDynamoDB.Context
                 .AddMapping(new TypeMapping(typeof(Photo), Environment.GetEnvironmentVariable(PHOTO_TABLE)));
 
             _ddbContext = new DynamoDBContext(_ddbClient);
-
-            AWSSDKHandler.RegisterXRayForAllServices();
         }
 
         private string StateMachineArn { get; }

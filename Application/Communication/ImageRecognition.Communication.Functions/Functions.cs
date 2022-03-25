@@ -32,8 +32,8 @@ namespace ImageRecognition.Communication.Functions
         /// </summary>
         public Functions()
         {
-            _manager = CommunicationManager.CreateManager(Environment.GetEnvironmentVariable(TABLE_NAME_ENV));
             AWSSDKHandler.RegisterXRayForAllServices();
+            _manager = CommunicationManager.CreateManager(Environment.GetEnvironmentVariable(TABLE_NAME_ENV));
         }
 
 
