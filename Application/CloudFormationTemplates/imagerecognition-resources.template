@@ -381,7 +381,8 @@
                     "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess",
                     "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess",
                     "arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess",
-                    "arn:aws:iam::aws:policy/AmazonCognitoPowerUser"
+                    "arn:aws:iam::aws:policy/AmazonCognitoPowerUser",
+                    "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
                 ],
                 "Policies": [ 
                     {
@@ -420,8 +421,7 @@
                 },
                 "ManagedPolicyArns": [
                     "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
-                    "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess",
-                    "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+                    "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
                 ]
             }
         },

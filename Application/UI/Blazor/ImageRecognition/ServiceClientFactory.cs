@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Amazon.AspNetCore.Identity.Cognito;
 using Amazon.Extensions.CognitoAuthentication;
+using Amazon.XRay.Recorder.Handlers.System.Net;
 using ImageRecognition.API.Client;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -74,7 +75,7 @@ namespace ImageRecognition.BlazorFrontend
                 throw new Exception();
 
 
-            var httpClient = new HttpClient();
+            var httpClient = new HttpClient(new HttpClientXRayTracingHandler(new HttpClientHandler()));
             httpClient.DefaultRequestHeaders.Authorization =
                 AuthenticationHeaderValue.Parse($"bearer {cognitoUser.SessionTokens.IdToken}");
 

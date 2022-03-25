@@ -71,7 +71,7 @@ namespace ImageRecognition.BlazorFrontend
                 app.UseHsts();
             }
 
-            app.UseXRay("ImageRecognition");
+            app.UseXRay("ImageRecognition-BlazorUI");
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
