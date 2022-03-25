@@ -4,6 +4,8 @@ using Amazon.DynamoDBv2;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.Util;
+using Amazon.XRay.Recorder.Core;
+using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using ImageRecognition.API.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -25,6 +27,8 @@ namespace ImageRecognition.API
         {
             Configuration = configuration;
             ConfigureDynamoDB();
+            AWSXRayRecorder.InitializeInstance(configuration: Configuration); // Inititalizing Configuration object with X-Ray recorder
+            AWSSDKHandler.RegisterXRayForAllServices(); // All AWS SDK requests will be traced
         }
 
         public IConfiguration Configuration { get; }
@@ -107,15 +111,13 @@ namespace ImageRecognition.API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseXRay("ImageRecognition.API");
-
             if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
+
+            app.UseXRay("ImageRecognition.API");
 
             app.UseResponseCompression();
 
             app.UseHttpsRedirection();
-
-            app.UseXRay("ImageRecognition.API");
 
             // Register the Swagger generator and the Swagger UI middlewares
             app.UseOpenApi();

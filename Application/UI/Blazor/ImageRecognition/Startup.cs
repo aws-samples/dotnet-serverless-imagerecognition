@@ -1,4 +1,5 @@
 using Amazon.S3;
+using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using ImageRecognition.BlazorFrontend.Areas.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -15,6 +16,7 @@ namespace ImageRecognition.BlazorFrontend
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            AWSSDKHandler.RegisterXRayForAllServices(); // All AWS SDK requests will be traced
         }
 
         public IConfiguration Configuration { get; }
