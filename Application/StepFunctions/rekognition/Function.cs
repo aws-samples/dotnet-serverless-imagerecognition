@@ -6,6 +6,7 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.Serialization.SystemTextJson;
 using Amazon.Rekognition;
 using Amazon.Rekognition.Model;
+using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Common;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -30,6 +31,7 @@ namespace rekognition
         public Function()
         {
             RekognitionClient = new AmazonRekognitionClient();
+            AWSSDKHandler.RegisterXRayForAllServices();
 
             var environmentMinConfidence = Environment.GetEnvironmentVariable(MIN_CONFIDENCE_ENVIRONMENT_VARIABLE_NAME);
             if (!string.IsNullOrWhiteSpace(environmentMinConfidence))

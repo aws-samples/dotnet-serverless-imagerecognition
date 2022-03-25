@@ -1,5 +1,6 @@
 using System;
 using Amazon.Lambda.Core;
+using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Common;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
@@ -12,6 +13,10 @@ namespace transform_metadata
 {
     public class Function
     {
+        public Function()
+        {
+            AWSSDKHandler.RegisterXRayForAllServices();
+        }
         /// <summary>
         ///     A simple function that takes a string and returns both the upper and lower case version of the string.
         /// </summary>

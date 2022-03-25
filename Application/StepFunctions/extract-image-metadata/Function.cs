@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.S3;
+using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Common;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
@@ -18,6 +19,7 @@ namespace extract_image_metadata
         public Function()
         {
             S3Client = new AmazonS3Client();
+            AWSSDKHandler.RegisterXRayForAllServices();
         }
 
         private IAmazonS3 S3Client { get; }

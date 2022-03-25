@@ -10,6 +10,7 @@ using Amazon.DynamoDBv2.DataModel;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.Serialization.SystemTextJson;
 using Amazon.Util;
+using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Common;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -29,6 +30,8 @@ namespace store_image_metadata
                 .AddMapping(new TypeMapping(typeof(Photo), Environment.GetEnvironmentVariable(PHOTO_TABLE)));
 
             _ddbContext = new DynamoDBContext(_ddbClient);
+
+            AWSSDKHandler.RegisterXRayForAllServices();
         }
 
         /// <summary>
