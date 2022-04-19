@@ -75,7 +75,8 @@ namespace ImageRecognition.BlazorFrontend
                 throw new Exception();
 
 
-            var httpClient = new HttpClient(new HttpClientXRayTracingHandler(new HttpClientHandler()));
+            //var httpClient = new HttpClient(new HttpClientXRayTracingHandler(new HttpClientHandler()));
+            var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Authorization =
                 AuthenticationHeaderValue.Parse($"bearer {cognitoUser.SessionTokens.IdToken}");
 
