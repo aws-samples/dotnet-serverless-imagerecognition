@@ -10,7 +10,7 @@ using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Common;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-[assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
+[assembly: LambdaSerializer(typeof(SourceGeneratorLambdaJsonSerializer<JsonLambdaContext>))]
 
 namespace rekognition
 {

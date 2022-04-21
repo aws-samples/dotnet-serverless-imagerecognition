@@ -1,5 +1,7 @@
 using System;
+using System.Text.Json.Serialization;
 using Amazon.Lambda.Core;
+using Amazon.Lambda.Serialization.SystemTextJson;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Common;
 using SixLabors.ImageSharp;
@@ -7,10 +9,17 @@ using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 //[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
-[assembly: LambdaSerializer(typeof(NewtonJsonSerializer))]
+[assembly: LambdaSerializer(typeof(SourceGeneratorLambdaJsonSerializer<transform_metadata.JsonImageMetadataContext>))]
 
 namespace transform_metadata
 {
+    [JsonSerializable(typeof(ImageMetadata))]
+    public partial class JsonImageMetadataContext : JsonSerializerContext
+    {
+
+    }
+
+
     public class Function
     {
         public Function()
