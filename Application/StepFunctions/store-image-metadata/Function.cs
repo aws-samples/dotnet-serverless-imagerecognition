@@ -15,17 +15,11 @@ using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Common;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-[assembly: LambdaSerializer(typeof(SourceGeneratorLambdaJsonSerializer<store_image_metadata.JsonInputEventContext>))]
+//[assembly: LambdaSerializer(typeof(SourceGeneratorLambdaJsonSerializer<store_image_metadata.JsonInputEventContext>))]
+[assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
 
 namespace store_image_metadata
 {
-
-    [JsonSerializable(typeof(InputEvent))]
-    public partial class JsonInputEventContext : JsonSerializerContext
-    {
-
-    }
-
     public class Function
     {
         private const string PHOTO_TABLE = "PHOTO_TABLE";

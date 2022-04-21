@@ -1,5 +1,6 @@
 using System.IO;
 using System.Net;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.Serialization.SystemTextJson;
@@ -11,10 +12,18 @@ using SixLabors.ImageSharp.Formats;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 //[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
-[assembly: LambdaSerializer(typeof(SourceGeneratorLambdaJsonSerializer<JsonLambdaContext>))]
+[assembly: LambdaSerializer(typeof(SourceGeneratorLambdaJsonSerializer<extract_image_metadata.JsonLambdaContext>))]
 
 namespace extract_image_metadata
 {
+
+    [JsonSerializable(typeof(ExecutionInput))]
+    [JsonSerializable(typeof(ImageMetadata))]
+    public partial class JsonLambdaContext : JsonSerializerContext
+    {
+
+    }
+
     public class Function
     {
         public Function()

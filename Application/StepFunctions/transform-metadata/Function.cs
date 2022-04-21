@@ -14,6 +14,7 @@ using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 namespace transform_metadata
 {
     [JsonSerializable(typeof(ImageMetadata))]
+    [JsonSerializable(typeof(TransformedMetadata))]
     public partial class JsonImageMetadataContext : JsonSerializerContext
     {
 

@@ -20,6 +20,7 @@ namespace thumbnail
 {
 
     [JsonSerializable(typeof(Input))]
+    [JsonSerializable(typeof(ThumbnailInfo))]
     public partial class JsonInputContext : JsonSerializerContext
     {
 
