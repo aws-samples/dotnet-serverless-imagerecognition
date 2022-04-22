@@ -3,25 +3,25 @@
     <TargetFramework>net6.0</TargetFramework>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <AWSProjectType>Lambda</AWSProjectType>
+	  <PublishReadyToRun>true</PublishReadyToRun>
     <!-- This property makes the build directory similar to a publish directory and helps the AWS .NET Lambda Mock Test Tool find project dependencies. -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-	<PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Amazon.Extensions.Configuration.SystemsManager" Version="3.0.0" />
-    <PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="7.1.0" />
+    <PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="7.0.1" />
 	  
-    <PackageReference Include="AWSSDK.CognitoIdentityProvider" Version="3.7.2.14" />
+    <PackageReference Include="AWSSDK.CognitoIdentityProvider" Version="3.7.1.100" />
 	  
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.3.26" />
-    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.2" />
-    <PackageReference Include="AWSSDK.S3" Version="3.7.8.23" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.3.3" />
+    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.1" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.8" />
     <PackageReference Include="AWSXRayRecorder" Version="2.10.1" />
     
 	<PackageReference Include="AWSXRayRecorder.Handlers.AspNetCore" Version="2.7.3" />
     <PackageReference Include="AWSXRayRecorder.Handlers.AwsSdk" Version="2.8.3" />
     
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.2" />
     
     <PackageReference Include="NSwag.AspNetCore" Version="13.15.10" />
   </ItemGroup>

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.DynamoDBv2;
@@ -15,7 +14,6 @@ using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Common;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-//[assembly: LambdaSerializer(typeof(SourceGeneratorLambdaJsonSerializer<store_image_metadata.JsonInputEventContext>))]
 [assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
 
 namespace store_image_metadata

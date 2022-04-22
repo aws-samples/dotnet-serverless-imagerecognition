@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Net;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.Serialization.SystemTextJson;
@@ -14,18 +13,10 @@ using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Processing;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-[assembly: LambdaSerializer(typeof(SourceGeneratorLambdaJsonSerializer<thumbnail.JsonInputContext>))]
+[assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
 
 namespace thumbnail
 {
-
-    [JsonSerializable(typeof(Input))]
-    [JsonSerializable(typeof(ThumbnailInfo))]
-    public partial class JsonInputContext : JsonSerializerContext
-    {
-
-    }
-
     public class Function
     {
         private const int MAX_WIDTH = 250;
