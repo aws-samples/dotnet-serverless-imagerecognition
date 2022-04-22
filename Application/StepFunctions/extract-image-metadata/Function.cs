@@ -15,14 +15,6 @@ using SixLabors.ImageSharp.Formats;
 
 namespace extract_image_metadata
 {
-
-    [JsonSerializable(typeof(ExecutionInput))]
-    [JsonSerializable(typeof(ImageMetadata))]
-    public partial class JsonLambdaContext : JsonSerializerContext
-    {
-
-    }
-
     public class Function
     {
         public Function()

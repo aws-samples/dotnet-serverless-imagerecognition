@@ -15,13 +15,6 @@ using Common;
 
 namespace rekognition
 {
-    [JsonSerializable(typeof(ExecutionInput))]
-    [JsonSerializable(typeof(List<Label>))]
-    public partial class JsonLambdaContext : JsonSerializerContext
-    {
-
-    }
-
     public class Function
     {
         /// <summary>
