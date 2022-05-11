@@ -12,6 +12,7 @@ using Amazon.Lambda.Serialization.SystemTextJson;
 using Amazon.StepFunctions;
 using Amazon.StepFunctions.Model;
 using Amazon.Util;
+using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Newtonsoft.Json;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -31,6 +32,8 @@ namespace s3Trigger
 
         public Function()
         {
+            AWSSDKHandler.RegisterXRayForAllServices();
+
             StateMachineArn = Environment.GetEnvironmentVariable(STATE_MACHINE_ARN);
 
             AWSConfigsDynamoDB.Context

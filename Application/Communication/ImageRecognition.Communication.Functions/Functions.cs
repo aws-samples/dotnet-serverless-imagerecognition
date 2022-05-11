@@ -7,6 +7,7 @@ using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.Serialization.Json;
 using Amazon.Runtime;
+using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -31,6 +32,7 @@ namespace ImageRecognition.Communication.Functions
         /// </summary>
         public Functions()
         {
+            AWSSDKHandler.RegisterXRayForAllServices();
             _manager = CommunicationManager.CreateManager(Environment.GetEnvironmentVariable(TABLE_NAME_ENV));
         }
 

@@ -381,7 +381,8 @@
                     "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess",
                     "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess",
                     "arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess",
-                    "arn:aws:iam::aws:policy/AmazonCognitoPowerUser"
+                    "arn:aws:iam::aws:policy/AmazonCognitoPowerUser",
+                    "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
                 ],
                 "Policies": [ 
                     {

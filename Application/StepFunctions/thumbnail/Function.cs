@@ -6,6 +6,7 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.Serialization.SystemTextJson;
 using Amazon.S3;
 using Amazon.S3.Model;
+using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Common;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
@@ -23,6 +24,7 @@ namespace thumbnail
 
         public Function()
         {
+            AWSSDKHandler.RegisterXRayForAllServices();
             S3Client = new AmazonS3Client();
         }
 

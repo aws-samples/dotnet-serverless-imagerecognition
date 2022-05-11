@@ -3,6 +3,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <AWSProjectType>Lambda</AWSProjectType>
+	  <PublishReadyToRun>true</PublishReadyToRun>
     <!-- This property makes the build directory similar to a publish directory and helps the AWS .NET Lambda Mock Test Tool find project dependencies. -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
@@ -15,6 +16,7 @@
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.3.3" />
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.1" />
     <PackageReference Include="AWSSDK.S3" Version="3.7.8" />
+    <PackageReference Include="AWSXRayRecorder" Version="2.10.1" />
     
 	<PackageReference Include="AWSXRayRecorder.Handlers.AspNetCore" Version="2.7.3" />
     <PackageReference Include="AWSXRayRecorder.Handlers.AwsSdk" Version="2.8.3" />
