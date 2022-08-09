@@ -39,7 +39,7 @@ Follow these instructions to deploy the application (both backend and frontend):
 1. Fork this repository in your GitHub account.
 2. Click Launch Stack to launch the template in your account and then click Next.
    
-    [![Launch image recognition with CloudFormation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=image-recognition&templateURL=https://s3.amazonaws.com/ssmdocs/dotnet-serverless-dev-cfn/imagerecognition-pipeline.template)
+    [![Launch image recognition with CloudFormation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=image-recognition&templateURL=https://windows-dev-env-ec2.s3.amazonaws.com/dotnet-serverless-dev-cfn/imagerecognition-pipeline.template)
 
 1. In the parameters section 
    1. Add Stack name as "ImageRecognition".
