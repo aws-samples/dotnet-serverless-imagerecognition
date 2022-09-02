@@ -39,11 +39,11 @@
         {
           "Or": [
             {
-              "Variable": "$.extractedMetadata.Format",
+              "Variable": "$.extractedMetadata.format",
               "StringEquals": "JPEG"
             },
             {
-              "Variable": "$.extractedMetadata.Format",
+              "Variable": "$.extractedMetadata.format",
               "StringEquals": "PNG"
             }
           ],
