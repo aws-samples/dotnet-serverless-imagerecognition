@@ -88,7 +88,21 @@ Follow these instructions to deploy the application (both backend and frontend):
 # Cleaning Up the Application Resources
 To remove all resources created by this example, do the following:
 
-Go to AWS CloudFormation console, delete the stacks with name "Image-Recognition-"
+1. Go to AWS CloudFormation console
+1. Expand the AWS CloudFormation node in the AWS Explorer. The sample consists of seven stacks:
+   1. *StackName*-ECSFrontend
+   1. *StackName*-API
+   1. *StackName*-S3TriggerLambdaFunction
+   1. *StackName*-StepFunctions
+   1. *StackName*-Communications
+   1. *StackName*-Infrastructure
+   1. *StackName*
+   \
+    (*StackName* is the name of the stack you used in the pre-requisites section.)
+   \
+
+   For each stack in order, right click and select Delete and respond to the confirmation prompt.
+> DANGER! Be sure to select the correct stacks!
 
 ## Security
 
