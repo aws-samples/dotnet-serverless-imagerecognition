@@ -98,7 +98,7 @@ To remove all resources created by this example, do the following:
    1. *StackName*-Infrastructure
    1. *StackName*
    \
-    (*StackName* is the name of the stack you used in the pre-requisites section.)
+    (*StackName* is the name of the stack you used in the **How to deploy** section.)
    \
 
    For each stack in order, right click and select Delete and respond to the confirmation prompt.
