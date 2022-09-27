@@ -28,34 +28,37 @@ namespace s3Trigger
         private static readonly IAmazonDynamoDB _ddbClient = new AmazonDynamoDBClient();
         private static readonly IAmazonStepFunctions _stepClient = new AmazonStepFunctionsClient();
 
-        private DynamoDBContext _ddbContext;
+        private static DynamoDBContext _ddbContext;
 
-        private string _stateMachineArn;
+        private static string _stateMachineArn;
 
-        /// <summary>
-        /// The main entry point for the custom runtime.
-        /// </summary>
-        /// <param name="args"></param>
-        private async Task Main()
+        static Function()
         {
             AWSSDKHandler.RegisterXRayForAllServices();
 
             _stateMachineArn = Environment.GetEnvironmentVariable(STATE_MACHINE_ARN) ?? string.Empty;
 
+            _ddbContext = new DynamoDBContext(_ddbClient);
+        }
+
+        /// <summary>
+        /// The main entry point for the custom runtime.
+        /// </summary>
+        /// <param name="args"></param>
+        private static async Task Main()
+        {
             AWSConfigsDynamoDB.Context
                 .AddMapping(new TypeMapping(typeof(Photo), Environment.GetEnvironmentVariable(PHOTO_TABLE)));
 
-            _ddbContext = new DynamoDBContext(_ddbClient);
-
             Func<S3Event, ILambdaContext, Task> handler = FunctionHandler;
-            await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<MyCustomJsonSerializerContext>())
+            await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<CustomJsonSerializerContext>(options => {
+                    options.PropertyNameCaseInsensitive = true;
+                }))
                 .Build()
                 .RunAsync();
         }
 
-        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
-        [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "<Pending>")]
-        public async Task FunctionHandler(S3Event evnt, ILambdaContext context)
+        public static async Task FunctionHandler(S3Event evnt, ILambdaContext context)
         {
             var bucket = evnt.Records[0].S3.Bucket.Name;
             var key = WebUtility.UrlDecode(evnt.Records[0].S3.Object.Key);
@@ -83,7 +86,7 @@ namespace s3Trigger
             {
                 StateMachineArn = _stateMachineArn,
                 Name = $"{MakeSafeName(key, 80)}",
-                Input = JsonSerializer.Serialize(input)
+                Input = JsonSerializer.Serialize(input, CustomJsonSerializerContext.Default.SfnInput)
             }).ConfigureAwait(false);
 
             var photo = new Photo
@@ -115,12 +118,13 @@ namespace s3Trigger
 
     }
 
+    [JsonSerializable(typeof(S3Event))]
     [JsonSerializable(typeof(SfnInput))]
     [JsonSerializable(typeof(Photo))]
     [JsonSerializable(typeof(DateTime?))]
     [JsonSerializable(typeof(ProcessingStatus))]
     [JsonSerializable(typeof(string))]
-    public partial class MyCustomJsonSerializerContext : JsonSerializerContext
+    public partial class CustomJsonSerializerContext : JsonSerializerContext
     {
         // By using this partial class derived from JsonSerializerContext, we can generate reflection free JSON Serializer code at compile time
         // which can deserialize our class and properties. However, we must attribute this class to tell it what types to generate serialization code for
