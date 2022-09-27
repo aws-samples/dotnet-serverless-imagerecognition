@@ -124,6 +124,7 @@ namespace s3Trigger
     [JsonSerializable(typeof(DateTime?))]
     [JsonSerializable(typeof(ProcessingStatus))]
     [JsonSerializable(typeof(string))]
+    [JsonSerializable(typeof(System.String))]
     public partial class CustomJsonSerializerContext : JsonSerializerContext
     {
         // By using this partial class derived from JsonSerializerContext, we can generate reflection free JSON Serializer code at compile time
