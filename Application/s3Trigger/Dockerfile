@@ -10,3 +10,5 @@ RUN curl -LO https://dot.net/v1/dotnet-install.sh
 RUN chmod +x dotnet-install.sh
 RUN ./dotnet-install.sh -Channel 7.0 -Version latest
 ENV PATH=/root/.dotnet:$PATH
+RUN dotnet tool install -g Amazon.Lambda.Tools
+ENV PATH="$PATH:/root/.dotnet/tools"
