@@ -124,36 +124,6 @@
             }
         },
 
-		"FrontendCluster": {
-            "Type": "AWS::ECS::Cluster",
-            "Description": "",
-            "Properties": {
-                "ClusterName": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "Frontend"
-                        ]
-                    ]
-                }
-            }
-        },
-
-		"ParameterFrontendCluster": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "Stores the ID of the cluster defined for our Fargate instances into Parameter Store.",
-            "Properties": {
-                "Type": "String",
-                "Value": {
-                    "Ref": "FrontendCluster"
-                },
-                "Name": "/ImageRecognition/FrontendCluster"
-            }
-        },
-
 		"ImageRecognitionArtifactStore" : {
 		    "Type" : "AWS::S3::Bucket",
 		    "Properties" : {
@@ -185,90 +155,6 @@
 				},
 		        "Source"      : {
 		            "BuildSpec" : "Application/s3Trigger/buildspec.yml",
-		            "Type"      : "CODEPIPELINE"
-		        }
-		    }
-		},
-
-		"ImageRecognitionStepFunctionsBuild" : {
-		    "Type" : "AWS::CodeBuild::Project",
-		    "Properties" : {
-		        "Artifacts" : {
-					"Type" : "CODEPIPELINE"
-		        },
-		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ImageRecognitionStepFunctions" ] ]},
-		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
-                "Environment" : {
-					"ComputeType" : "BUILD_GENERAL1_SMALL",
-                    "Type" : "LINUX_CONTAINER",
-                    "Image" : "aws/codebuild/standard:5.0",
-                    "PrivilegedMode" : true
-				},
-		        "Source"      : {
-		            "BuildSpec" : "Application/StepFunctions/buildspec.yml",
-		            "Type"      : "CODEPIPELINE"
-		        }
-		    }
-		},
-		
-		"PhotoCommunicationsBuild" : {
-		    "Type" : "AWS::CodeBuild::Project",
-		    "Properties" : {
-		        "Artifacts" : {
-					"Type" : "CODEPIPELINE"
-		        },
-		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-Communications" ] ]},
-		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
-                "Environment" : {
-					"ComputeType" : "BUILD_GENERAL1_SMALL",
-                    "Type" : "LINUX_CONTAINER",
-                    "Image" : "aws/codebuild/standard:5.0",
-                    "PrivilegedMode" : true
-				},
-		        "Source"      : {
-		            "BuildSpec" : "Application/Communication/ImageRecognition.Communication.Functions/buildspec.yml",
-		            "Type"      : "CODEPIPELINE"
-		        }
-		    }
-		},
-		
-		"ImageRecognitionAPIBuild" : {
-		    "Type" : "AWS::CodeBuild::Project",
-		    "Properties" : {
-		        "Artifacts" : {
-					"Type" : "CODEPIPELINE"
-		        },
-		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-API" ] ]},
-		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
-                "Environment" : {
-					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
-                    "Type" : "LINUX_CONTAINER",
-                    "Image" : "aws/codebuild/standard:5.0",                    
-                    "PrivilegedMode" : true
-				},
-		        "Source"      : {
-		            "BuildSpec" : "Application/API/ImageRecognition.API/buildspec.yml",
-		            "Type"      : "CODEPIPELINE"
-		        }
-		    }
-		},
-
-		"ImageRecognitionFrontendBuild" : {
-		    "Type" : "AWS::CodeBuild::Project",
-		    "Properties" : {
-		        "Artifacts" : {
-					"Type" : "CODEPIPELINE"
-		        },
-		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-Blazor" ] ]},
-		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
-                "Environment" : {
-					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
-                    "Type" : "LINUX_CONTAINER",
-                    "Image" : "aws/codebuild/standard:5.0",                    
-                    "PrivilegedMode" : true
-				},
-		        "Source"      : {
-		            "BuildSpec" : "Application/UI/Blazor/ImageRecognition/buildspec.yml",
 		            "Type"      : "CODEPIPELINE"
 		        }
 		    }
@@ -366,7 +252,7 @@
 									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
 									"TemplatePath" : "S3TriggerLambdaFunctionBuild::updated.template"
 								},
-                                "RunOrder" : 1
+                                "RunOrder" : 2
 							}
 						]
 					}
