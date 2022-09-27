@@ -8,16 +8,19 @@ env:
 phases:
   install:
     commands:
-      - curl $DOTNET_SDK_URL -o dotnet-sdk-6.tar.gz
-      - mkdir -p $HOME/dotnet && tar zxf dotnet-sdk-6.tar.gz -C $HOME/dotnet
-      - export DOTNET_ROOT=$HOME/dotnet
-      - export PATH=$HOME/dotnet:$PATH
-      - apt-get update && apt-get install -y zip
+      - RUN yum update -y && yum install -y clang krb5-devel openssl-devel libicu llvm
+      - RUN yum install -y tar gzip
+      - RUN curl -LO https://dot.net/v1/dotnet-install.sh
+      - RUN chmod +x dotnet-install.sh
+      - RUN ./dotnet-install.sh -Channel 7.0 -Version latest
+      - ENV PATH=/root/.dotnet:$PATH
       - dotnet tool install -g Amazon.Lambda.Tools
       - export PATH="$PATH:/root/.dotnet/tools"
   build:
     commands:
       - cd ./Application/s3Trigger
+      - dotnet publish "s3Trigger.csproj" -r linux-x64 -c Release --output \app\publish
+      - Compress-Archive .\app\publish* s3Trigger.zip
       - dotnet lambda package-ci --serverless-template serverless.template --output-template updated.template --s3-bucket $S3_BUCKET --s3-prefix s3Trigger
 artifacts:
   files:

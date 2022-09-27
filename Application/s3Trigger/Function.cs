@@ -13,10 +13,10 @@ using Amazon.StepFunctions;
 using Amazon.StepFunctions.Model;
 using Amazon.Util;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
-using Newtonsoft.Json;
-
-// Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-[assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
+using Amazon.Lambda.RuntimeSupport;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using System.Diagnostics.CodeAnalysis;
 
 namespace s3Trigger
 {
@@ -28,28 +28,33 @@ namespace s3Trigger
         private static readonly IAmazonDynamoDB _ddbClient = new AmazonDynamoDBClient();
         private static readonly IAmazonStepFunctions _stepClient = new AmazonStepFunctionsClient();
 
-        private readonly DynamoDBContext _ddbContext;
+        private DynamoDBContext _ddbContext;
 
-        public Function()
+        private string _stateMachineArn;
+
+        /// <summary>
+        /// The main entry point for the custom runtime.
+        /// </summary>
+        /// <param name="args"></param>
+        private async Task Main()
         {
             AWSSDKHandler.RegisterXRayForAllServices();
 
-            StateMachineArn = Environment.GetEnvironmentVariable(STATE_MACHINE_ARN);
+            _stateMachineArn = Environment.GetEnvironmentVariable(STATE_MACHINE_ARN) ?? string.Empty;
 
             AWSConfigsDynamoDB.Context
                 .AddMapping(new TypeMapping(typeof(Photo), Environment.GetEnvironmentVariable(PHOTO_TABLE)));
 
             _ddbContext = new DynamoDBContext(_ddbClient);
+
+            Func<S3Event, ILambdaContext, Task> handler = FunctionHandler;
+            await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<MyCustomJsonSerializerContext>())
+                .Build()
+                .RunAsync();
         }
 
-        private string StateMachineArn { get; }
-
-        /// <summary>
-        ///     A simple function that takes a string and returns both the upper and lower case version of the string.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
+        [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "<Pending>")]
         public async Task FunctionHandler(S3Event evnt, ILambdaContext context)
         {
             var bucket = evnt.Records[0].S3.Bucket.Name;
@@ -65,7 +70,7 @@ namespace s3Trigger
 
             Console.WriteLine(photoId);
 
-            var input = new
+            var input = new SfnInput
             {
                 Bucket = bucket,
                 SourceKey = key,
@@ -76,9 +81,9 @@ namespace s3Trigger
 
             var stepResponse = await _stepClient.StartExecutionAsync(new StartExecutionRequest
             {
-                StateMachineArn = StateMachineArn,
+                StateMachineArn = _stateMachineArn,
                 Name = $"{MakeSafeName(key, 80)}",
-                Input = JsonConvert.SerializeObject(input)
+                Input = JsonSerializer.Serialize(input)
             }).ConfigureAwait(false);
 
             var photo = new Photo
@@ -107,5 +112,18 @@ namespace s3Trigger
 
             return name;
         }
+
+    }
+
+    [JsonSerializable(typeof(SfnInput))]
+    [JsonSerializable(typeof(Photo))]
+    [JsonSerializable(typeof(DateTime?))]
+    [JsonSerializable(typeof(ProcessingStatus))]
+    [JsonSerializable(typeof(string))]
+    public partial class MyCustomJsonSerializerContext : JsonSerializerContext
+    {
+        // By using this partial class derived from JsonSerializerContext, we can generate reflection free JSON Serializer code at compile time
+        // which can deserialize our class and properties. However, we must attribute this class to tell it what types to generate serialization code for
+        // See https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-source-generation
     }
 }
