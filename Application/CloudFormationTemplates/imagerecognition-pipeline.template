@@ -130,15 +130,6 @@
 		    }
 		},
 
-		"ParameterImageRecognitionArtifactStore" : {
-            "Type" : "AWS::SSM::Parameter",
-            "Properties" : {
-                "Type" : "String",
-                "Value" : {"Ref" : "ImageRecognitionArtifactStore"},
-                "Name" : "/ImageRecognition/ImageRecognitionArtifactStore"
-            }
-        },
-
 		"S3TriggerLambdaFunctionBuild" : {
 		    "Type" : "AWS::CodeBuild::Project",
 		    "Properties" : {

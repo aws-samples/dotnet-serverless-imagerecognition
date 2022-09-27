@@ -1,21 +1,12 @@
-FROM public.ecr.aws/lambda/dotnet:6 AS base
+FROM public.ecr.aws/sam/build-provided.al2:latest AS base
+WORKDIR /source
+# Install dependencies for compiling naively
+RUN yum update -y && yum install -y clang krb5-devel openssl-devel libicu llvm
+# need to look into llvm, which is only needed for stripSymbols https://github.com/dotnet/runtime/issues/72155 
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 as build
-WORKDIR /src
-COPY ["s3Trigger.csproj", "."]
-RUN dotnet restore "./s3Trigger.csproj"
-COPY . .
-WORKDIR "/src/."
-RUN dotnet build "s3Trigger.csproj" --configuration Release --output /app/build
-
-FROM build AS publish
-RUN dotnet publish "s3Trigger.csproj" \
-            --configuration Release \ 
-            --runtime linux-x64 \
-            --self-contained false \ 
-            --output /app/publish \
-            -p:PublishReadyToRun=true  
-
-FROM base AS final
-WORKDIR /var/task
-COPY --from=publish /app/publish .
+# Install .NET 7 preview
+RUN yum install -y tar gzip
+RUN curl -LO https://dot.net/v1/dotnet-install.sh
+RUN chmod +x dotnet-install.sh
+RUN ./dotnet-install.sh -Channel 7.0 -Version latest
+ENV PATH=/root/.dotnet:$PATH
