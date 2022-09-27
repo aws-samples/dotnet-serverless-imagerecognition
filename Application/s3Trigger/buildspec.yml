@@ -20,7 +20,7 @@ phases:
     commands:
       - cd ./Application/s3Trigger
       - dotnet publish "s3Trigger.csproj" -r linux-x64 -c Release --self-contained true --output /publish
-      - zip -r s3Trigger.zip /publish/
+      - zip s3Trigger.zip /publish/bootstrap
       - dotnet lambda package-ci --template serverless.template --output-template updated.template --s3-bucket $S3_BUCKET --s3-prefix s3Trigger
 artifacts:
   files:
