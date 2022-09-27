@@ -13,7 +13,6 @@ phases:
       - curl -LO https://dot.net/v1/dotnet-install.sh
       - chmod +x dotnet-install.sh
       - ./dotnet-install.sh -Channel 7.0 -Version latest
-      - ENV PATH=/root/.dotnet:$PATH
       - dotnet tool install -g Amazon.Lambda.Tools
       - export PATH="$PATH:/root/.dotnet/tools"
   build:
