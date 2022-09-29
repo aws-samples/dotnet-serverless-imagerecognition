@@ -24,12 +24,9 @@ namespace s3Trigger
     {
         private const string STATE_MACHINE_ARN = "STATE_MACHINE_ARN";
         private const string PHOTO_TABLE = "PHOTO_TABLE";
-
         private static readonly IAmazonDynamoDB _ddbClient = new AmazonDynamoDBClient();
         private static readonly IAmazonStepFunctions _stepClient = new AmazonStepFunctionsClient();
-
         private static DynamoDBContext _ddbContext;
-
         private static string _stateMachineArn;
 
         static Function()
@@ -39,6 +36,9 @@ namespace s3Trigger
             _stateMachineArn = Environment.GetEnvironmentVariable(STATE_MACHINE_ARN) ?? string.Empty;
 
             _ddbContext = new DynamoDBContext(_ddbClient);
+
+            AWSConfigsDynamoDB.Context.AddMapping(new TypeMapping(typeof(Photo),
+                Environment.GetEnvironmentVariable(PHOTO_TABLE)));
         }
 
         /// <summary>
@@ -47,9 +47,6 @@ namespace s3Trigger
         /// <param name="args"></param>
         private static async Task Main()
         {
-            AWSConfigsDynamoDB.Context
-                .AddMapping(new TypeMapping(typeof(Photo), Environment.GetEnvironmentVariable(PHOTO_TABLE)));
-
             Func<S3Event, ILambdaContext, Task> handler = FunctionHandler;
             await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<CustomJsonSerializerContext>(options => {
                     options.PropertyNameCaseInsensitive = true;
@@ -63,15 +60,15 @@ namespace s3Trigger
             var bucket = evnt.Records[0].S3.Bucket.Name;
             var key = WebUtility.UrlDecode(evnt.Records[0].S3.Object.Key);
 
-            Console.WriteLine(bucket);
-            Console.WriteLine(key);
+            Console.WriteLine($"Bucket: {bucket}");
+            Console.WriteLine($"key: {key}");
 
             var photoData = key.Split("/").Reverse().Take(2).ToArray();
 
             var photoId = photoData[0];
             var userId = photoData[1];
 
-            Console.WriteLine(photoId);
+            Console.WriteLine($"Parsed photoId: {photoId}");
 
             var input = new SfnInput
             {
@@ -115,20 +112,5 @@ namespace s3Trigger
 
             return name;
         }
-
-    }
-
-    [JsonSerializable(typeof(S3Event))]
-    [JsonSerializable(typeof(SfnInput))]
-    [JsonSerializable(typeof(Photo))]
-    [JsonSerializable(typeof(DateTime?))]
-    [JsonSerializable(typeof(ProcessingStatus))]
-    [JsonSerializable(typeof(string))]
-    [JsonSerializable(typeof(System.String))]
-    public partial class CustomJsonSerializerContext : JsonSerializerContext
-    {
-        // By using this partial class derived from JsonSerializerContext, we can generate reflection free JSON Serializer code at compile time
-        // which can deserialize our class and properties. However, we must attribute this class to tell it what types to generate serialization code for
-        // See https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-source-generation
     }
 }
