@@ -178,7 +178,7 @@
 		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-S3TriggerLambdaFunctionBuild" ] ]},
 		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
                 "Environment" : {
-					"ComputeType" : "BUILD_GENERAL1_SMALL",
+					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
                     "Type" : "LINUX_CONTAINER",
                     "Image" : "aws/codebuild/amazonlinux2-x86_64-standard:4.0",
                     "PrivilegedMode" : true
@@ -199,7 +199,7 @@
 		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ImageRecognitionStepFunctions" ] ]},
 		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
                 "Environment" : {
-					"ComputeType" : "BUILD_GENERAL1_SMALL",
+					"ComputeType" : "BUILD_GENERAL1_LARGE",
                     "Type" : "LINUX_CONTAINER",
                     "Image" : "aws/codebuild/amazonlinux2-x86_64-standard:4.0",
                     "PrivilegedMode" : true
@@ -220,7 +220,7 @@
 		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-Communications" ] ]},
 		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
                 "Environment" : {
-					"ComputeType" : "BUILD_GENERAL1_SMALL",
+					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
                     "Type" : "LINUX_CONTAINER",
                     "Image" : "aws/codebuild/standard:5.0",
                     "PrivilegedMode" : true
