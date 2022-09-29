@@ -73,7 +73,7 @@
                 "Runtime":"dotnet6",
                 "Code": {
                     "S3Bucket": "",
-                    "S3Key": "./store_image_metadata.zip"
+                    "S3Key": "./store-image-metadata.zip"
                 },
                 "Environment": {
                     "Variables": {
