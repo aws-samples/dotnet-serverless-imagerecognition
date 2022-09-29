@@ -96,7 +96,7 @@
                 "Value": {
                     "Ref": "PhotoStorageBucket"
                 },
-                "Name": "/ImageRecognition/AppOptions/PhotoStorageBucketv1"
+                "Name": "/ImageRecognition/AppOptions/PhotoStorageBucket"
             }
         }
     }
