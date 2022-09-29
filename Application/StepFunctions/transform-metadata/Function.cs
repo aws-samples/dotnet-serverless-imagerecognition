@@ -1,29 +1,43 @@
 using System;
+using System.Threading.Tasks;
 using Amazon.Lambda.Core;
+using Amazon.Lambda.RuntimeSupport;
+using Amazon.Lambda.Serialization.SystemTextJson;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Common;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 
-// Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-//[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
-[assembly: LambdaSerializer(typeof(NewtonJsonSerializer))]
-
 namespace transform_metadata
 {
     public class Function
     {
-        public Function()
+        static Function()
         {
             AWSSDKHandler.RegisterXRayForAllServices();
         }
+
+        /// <summary>
+        /// The main entry point for the custom runtime.
+        /// </summary>
+        /// <param name="args"></param>
+        private static async Task Main()
+        {
+            Func<ImageMetadata, ILambdaContext, TransformedMetadata> handler = FunctionHandler;
+            await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<CustomJsonSerializerContext>(options => {
+                options.PropertyNameCaseInsensitive = true;
+            }))
+                .Build()
+                .RunAsync();
+        }
+
         /// <summary>
         ///     A simple function that takes a string and returns both the upper and lower case version of the string.
         /// </summary>
         /// <param name="input"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public TransformedMetadata FunctionHandler(ImageMetadata extractedMetadata, ILambdaContext context)
+        private static TransformedMetadata FunctionHandler(ImageMetadata extractedMetadata, ILambdaContext context)
         {
             ExifProfile exifProfile = null;
             if (!string.IsNullOrEmpty(extractedMetadata.ExifProfileBase64))
@@ -48,7 +62,7 @@ namespace transform_metadata
             return transformedMetadata;
         }
 
-        private GeoLocation ExtractGeoLocation(ExifProfile exifProfile)
+        private static GeoLocation ExtractGeoLocation(ExifProfile exifProfile)
         {
             if (exifProfile?.GetValue(ExifTag.GPSLatitude) == null)
                 // no GPS exifProfile found.
@@ -66,7 +80,7 @@ namespace transform_metadata
             return geo;
         }
 
-        private Coordinate ParseCoordinate(string gpsRef, Rational[] rationals)
+        private static Coordinate ParseCoordinate(string gpsRef, Rational[] rationals)
         {
             var coordinate = new Coordinate
             {

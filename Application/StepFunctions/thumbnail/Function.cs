@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
+using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -12,23 +13,32 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Processing;
 
-// Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-[assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
-
 namespace thumbnail
 {
     public class Function
     {
         private const int MAX_WIDTH = 250;
         private const int MAX_HEIGHT = 250;
-
-        public Function()
+        private static IAmazonS3 S3Client { get; }
+        static Function()
         {
             AWSSDKHandler.RegisterXRayForAllServices();
             S3Client = new AmazonS3Client();
         }
 
-        private IAmazonS3 S3Client { get; }
+        /// <summary>
+        /// The main entry point for the custom runtime.
+        /// </summary>
+        /// <param name="args"></param>
+        private static async Task Main()
+        {
+            Func<Input, ILambdaContext, Task<ThumbnailInfo>> handler = FunctionHandler;
+            await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<CustomJsonSerializerContext>(options => {
+                options.PropertyNameCaseInsensitive = true;
+            }))
+                .Build()
+                .RunAsync();
+        }
 
         /// <summary>
         ///     A simple function that takes a string and returns both the upper and lower case version of the string.
@@ -36,7 +46,7 @@ namespace thumbnail
         /// <param name="input"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public async Task<ThumbnailInfo> FunctionHandler(Input input, ILambdaContext context)
+        private static async Task<ThumbnailInfo> FunctionHandler(Input input, ILambdaContext context)
         {
             var logger = new ImageRecognitionLogger(input, context);
 
@@ -74,7 +84,7 @@ namespace thumbnail
             }
         }
 
-        private async Task<ThumbnailImage> GenerateThumbnail(string s3Bucket, string srcKey, int width, int height)
+        private static async Task<ThumbnailImage> GenerateThumbnail(string s3Bucket, string srcKey, int width, int height)
         {
             srcKey = WebUtility.UrlDecode(srcKey.Replace("+", " "));
             using (var response = await S3Client.GetObjectAsync(s3Bucket, srcKey))

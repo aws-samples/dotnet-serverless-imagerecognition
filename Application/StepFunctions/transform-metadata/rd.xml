@@ -1,0 +1,16 @@
+﻿<Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
+  <Application>
+    <Assembly Name="AWSSDK.Core" Dynamic="Required All">
+    </Assembly>
+    <Assembly Name="AWSXRayRecorder.Core" Dynamic="Required All">
+    </Assembly>
+    <Assembly Name="AWSXRayRecorder.Handlers.AwsSdk" Dynamic="Required All">
+    </Assembly>
+    <Assembly Name="bootstrap" Dynamic="Required All">
+    </Assembly>
+    <Assembly Name="SixLabors.ImageSharp" Dynamic="Required All">
+    </Assembly>
+    <Assembly Name="Common" Dynamic="Required All">
+    </Assembly>
+  </Application>
+</Directives>

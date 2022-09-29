@@ -12,7 +12,6 @@
             ResourceId = resourceId;
         }
 
-
         public string TargetUser { get; set; }
 
         public string ResourceId { get; set; }

@@ -7,12 +7,10 @@
   ],
   "profile": "",
   "region": "",
-  "function-runtime": "dotnet6",
   "configuration": "Release",
-  "template": "serverless.template",
-  "template-parameters": "",
-  "stack-name": "image-recognition-lambda-functions",
-  "template-substitutions": "$.Resources.StateMachine.Properties.DefinitionString.Fn::Sub=state-machine.json",
-  "s3-prefix": "image-recognition/lambda-functions",
-  "s3-bucket": "dotnet-image-recognition"
+  "function-runtime": "provided.al2",
+  "function-memory-size": 256,
+  "function-timeout": 30,
+  "function-handler": "bootstrap",
+  "msbuild-parameters": "--self-contained true"
 }

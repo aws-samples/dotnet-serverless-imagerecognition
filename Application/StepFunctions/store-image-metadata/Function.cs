@@ -8,6 +8,7 @@ using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.Lambda.Core;
+using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
 using Amazon.Util;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
@@ -22,9 +23,9 @@ namespace store_image_metadata
     {
         private const string PHOTO_TABLE = "PHOTO_TABLE";
         private static readonly IAmazonDynamoDB _ddbClient = new AmazonDynamoDBClient();
-        private readonly DynamoDBContext _ddbContext;
+        private static readonly DynamoDBContext _ddbContext;
 
-        public Function()
+        static Function()
         {
             AWSSDKHandler.RegisterXRayForAllServices();
 
@@ -35,19 +36,36 @@ namespace store_image_metadata
         }
 
         /// <summary>
+        /// The main entry point for the custom runtime.
+        /// </summary>
+        /// <param name="args"></param>
+        private static async Task Main()
+        {
+            Func<InputEvent, ILambdaContext, Task> handler = FunctionHandler;
+            await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<CustomJsonSerializerContext>(options => {
+                options.PropertyNameCaseInsensitive = true;
+            }))
+                .Build()
+                .RunAsync();
+        }
+
+
+        /// <summary>
         ///     A simple function that takes a string and returns both the upper and lower case version of the string.
         /// </summary>
         /// <param name="input"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public async Task FunctionHandler(InputEvent input, ILambdaContext context)
+        private static async Task FunctionHandler(InputEvent input, ILambdaContext context)
         {
             var logger = new ImageRecognitionLogger(input, context);
 
-            var thumbnail = JsonSerializer.Deserialize<Thumbnail>(JsonSerializer.Serialize(input.ParallelResults[1]));
+            var thumbnail = JsonSerializer.Deserialize(JsonSerializer.Serialize(input.ParallelResults[1],CustomJsonSerializerContext.Default.Object),
+                CustomJsonSerializerContext.Default.Thumbnail);
 
-            var labels = JsonSerializer.Deserialize<List<Label>>(JsonSerializer.Serialize(input.ParallelResults[0]));
-
+            var labels = JsonSerializer.Deserialize(JsonSerializer.Serialize(input.ParallelResults[0], CustomJsonSerializerContext.Default.Object),
+                CustomJsonSerializerContext.Default.ListLabel);
+            
             var photoUpdate = new Photo
             {
                 PhotoId = WebUtility.UrlDecode(input.PhotoId),
@@ -75,7 +93,7 @@ namespace store_image_metadata
             // update photo table.
             await _ddbContext.SaveAsync(photoUpdate).ConfigureAwait(false);
 
-            var data = JsonSerializer.Serialize(photoUpdate);
+            var data = JsonSerializer.Serialize(photoUpdate, CustomJsonSerializerContext.Default.Photo);
 
             await logger.WriteMessageAsync(
                 new MessageEvent

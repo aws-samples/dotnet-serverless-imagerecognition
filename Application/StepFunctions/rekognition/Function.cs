@@ -4,14 +4,12 @@ using System.Net;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
+using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
 using Amazon.Rekognition;
 using Amazon.Rekognition.Model;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Common;
-
-// Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-[assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
 
 namespace rekognition
 {
@@ -29,7 +27,11 @@ namespace rekognition
 
         public const int MaxLabels = 10;
 
-        public Function()
+        private static IAmazonRekognition RekognitionClient { get; }
+
+        private static float MinConfidence { get; } = DEFAULT_MIN_CONFIDENCE;
+
+        static Function()
         {
             AWSSDKHandler.RegisterXRayForAllServices();
 
@@ -56,9 +58,19 @@ namespace rekognition
             }
         }
 
-        private IAmazonRekognition RekognitionClient { get; }
-
-        private float MinConfidence { get; } = DEFAULT_MIN_CONFIDENCE;
+        /// <summary>
+        /// The main entry point for the custom runtime.
+        /// </summary>
+        /// <param name="args"></param>
+        private static async Task Main()
+        {
+            Func<ExecutionInput, ILambdaContext, Task<List<Label>>> handler = FunctionHandler;
+            await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<CustomJsonSerializerContext>(options => {
+                options.PropertyNameCaseInsensitive = true;
+            }))
+                .Build()
+                .RunAsync();
+        }
 
         /// <summary>
         ///     A simple function that takes a string and returns both the upper and lower case version of the string.
@@ -66,7 +78,7 @@ namespace rekognition
         /// <param name="input"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public async Task<List<Label>> FunctionHandler(ExecutionInput input, ILambdaContext context)
+        public static async Task<List<Label>> FunctionHandler(ExecutionInput input, ILambdaContext context)
         {
             var logger = new ImageRecognitionLogger(input, context);
 

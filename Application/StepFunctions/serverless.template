@@ -37,7 +37,7 @@
                 "Runtime":"dotnet6",
                 "Code": {
                     "S3Bucket": "",
-                    "S3Key": "./transform-metadata"
+                    "S3Key": "./transform-metadata.zip"
                 }
             }
         },
@@ -58,7 +58,7 @@
                 "Runtime":"dotnet6",
                 "Code": {
                     "S3Bucket": "",
-                    "S3Key": "./extract-image-metadata"
+                    "S3Key": "./extract-image-metadata.zip"
                 }
             }
         },
@@ -73,7 +73,7 @@
                 "Runtime":"dotnet6",
                 "Code": {
                     "S3Bucket": "",
-                    "S3Key": "./store-image-metadata"
+                    "S3Key": "./store_image_metadata.zip"
                 },
                 "Environment": {
                     "Variables": {
@@ -100,7 +100,7 @@
                 "Runtime":"dotnet6",
                 "Code": {
                     "S3Bucket": "",
-                    "S3Key": "./rekognition"
+                    "S3Key": "./rekognition.zip"
                 }
             }
         },
@@ -121,7 +121,7 @@
                 "Runtime":"dotnet6",
                  "Code": {
                     "S3Bucket": "",
-                    "S3Key": "./thumbnail"
+                    "S3Key": "./thumbnail.zip"
                 }
             }
         },
