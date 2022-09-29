@@ -12,5 +12,7 @@
   "function-memory-size": 256,
   "function-timeout": 30,
   "function-handler": "bootstrap",
-  "msbuild-parameters": "--self-contained true"
+  "msbuild-parameters": "--self-contained true",
+  "template-substitutions": "$.Resources.StateMachine.Properties.DefinitionString.Fn::Sub=state-machine.json",
+  "template-parameters": ""
 }
