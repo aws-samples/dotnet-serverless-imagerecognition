@@ -17,28 +17,28 @@ phases:
   build:
     commands:
       - cd ./Application/StepFunctions/
-      - dotnet publish "extract-image-metadata/extract-image-metadata.csproj" -r linux-x64 -c Release --self-contained true --output /extract-image-metadata/publish
-      - cp /extract-image-metadata/publish/bootstrap bootstrap
+      - dotnet publish "extract-image-metadata/extract-image-metadata.csproj" -r linux-x64 -c Release --self-contained true --output "extract-image-metadata/publish"
+      - cp "/extract-image-metadata/publish/bootstrap" bootstrap
       - zip extract-image-metadata.zip bootstrap
       - rm bootstrap
 
-      - dotnet publish "rekognition/rekognition.csproj" -r linux-x64 -c Release --self-contained true --output /rekognition/publish
-      - cp /rekognition/publish/bootstrap bootstrap
+      - dotnet publish "rekognition/rekognition.csproj" -r linux-x64 -c Release --self-contained true --output "/rekognition/publish"
+      - cp "/rekognition/publish/bootstrap" bootstrap
       - zip rekognition.zip bootstrap
       - rm bootstrap
 
-      - dotnet publish "store-image-metadata/store-image-metadata.csproj" -r linux-x64 -c Release --self-contained true --output /store-image-metadata/publish
-      - cp /store-image-metadata/publish/bootstrap bootstrap
+      - dotnet publish "store-image-metadata/store-image-metadata.csproj" -r linux-x64 -c Release --self-contained true --output "/store-image-metadata/publish"
+      - cp "/store-image-metadata/publish/bootstrap" bootstrap
       - zip store-image-metadata.zip bootstrap
       - rm bootstrap
 
-      - dotnet publish "thumbnail/thumbnail.csproj" -r linux-x64 -c Release --self-contained true --output /thumbnail/publish
-      - cp /thumbnail/publish/bootstrap bootstrap
+      - dotnet publish "thumbnail/thumbnail.csproj" -r linux-x64 -c Release --self-contained true --output "/thumbnail/publish"
+      - cp "/thumbnail/publish/bootstrap" bootstrap
       - zip thumbnail.zip bootstrap
       - rm bootstrap
 
-      - dotnet publish "transform-metadata/transform-metadata.csproj" -r linux-x64 -c Release --self-contained true --output /transform-metadata/publish
-      - cp /transform-metadata/publish/bootstrap bootstrap
+      - dotnet publish "transform-metadata/transform-metadata.csproj" -r linux-x64 -c Release --self-contained true --output "/transform-metadata/publish"
+      - cp "/transform-metadata/publish/bootstrap" bootstrap
       - zip transform-metadata.zip bootstrap
       - rm bootstrap
 

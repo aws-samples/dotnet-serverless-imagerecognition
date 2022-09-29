@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31313.79
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.32912.340
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageRecognition.Frontend", "UI\mvc-frontend\ImageRecognition\ImageRecognition.Frontend.csproj", "{A86D2AC3-B17E-4BD0-A2E4-202C37FAADCE}"
 EndProject
@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StepFunctions", "StepFuncti
 	ProjectSection(SolutionItems) = preProject
 		StepFunctions\aws-lambda-tools-defaults.json = StepFunctions\aws-lambda-tools-defaults.json
 		StepFunctions\buildspec.yml = StepFunctions\buildspec.yml
+		StepFunctions\deploy.ps1 = StepFunctions\deploy.ps1
+		StepFunctions\Dockerfile = StepFunctions\Dockerfile
 		StepFunctions\serverless.template = StepFunctions\serverless.template
 		StepFunctions\state-machine.json = StepFunctions\state-machine.json
 	EndProjectSection
@@ -45,13 +47,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Communication", "Communicat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageRecognition.Communication.Functions", "Communication\ImageRecognition.Communication.Functions\ImageRecognition.Communication.Functions.csproj", "{7936529D-03BB-4681-9AEF-D5C1C54E1B16}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageRecognition.BlazorFrontend", "UI\Blazor\ImageRecognition\ImageRecognition.BlazorFrontend.csproj", "{DB7843AD-30FA-489F-8570-C11D2F9F9DA0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageRecognition.BlazorFrontend", "UI\Blazor\ImageRecognition\ImageRecognition.BlazorFrontend.csproj", "{DB7843AD-30FA-489F-8570-C11D2F9F9DA0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Clients", "Clients", "{5DD25832-C50F-4456-AC6D-22E33544C593}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageRecognition.API.Client.Generator", "Clients\ImageRecognition.API.Client.Generator\ImageRecognition.API.Client.Generator.csproj", "{C55B40A2-2F90-41ED-9CB9-79F0FB5FAE0F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageRecognition.API.Client", "Clients\ImageRecognition.API.Client\ImageRecognition.API.Client.csproj", "{D42B4E02-BFB7-491E-8A6E-7B1988D2B217}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageRecognition.API.Client", "Clients\ImageRecognition.API.Client\ImageRecognition.API.Client.csproj", "{D42B4E02-BFB7-491E-8A6E-7B1988D2B217}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
