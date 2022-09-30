@@ -11,6 +11,7 @@ namespace transform_metadata
     [JsonSerializable(typeof(GeoLocation))]
     [JsonSerializable(typeof(Dimensions))]
     [JsonSerializable(typeof(DateTime))]
+    [JsonSerializable(typeof(object))]
     [JsonSerializable(typeof(string))]
     [JsonSerializable(typeof(System.String))]
     public partial class CustomJsonSerializerContext : JsonSerializerContext
