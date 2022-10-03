@@ -39,6 +39,8 @@ namespace transform_metadata
         /// <returns></returns>
         private static TransformedMetadata FunctionHandler(ImageMetadata extractedMetadata, ILambdaContext context)
         {
+            Console.WriteLine(extractedMetadata);
+
             ExifProfile exifProfile = null;
             if (!string.IsNullOrEmpty(extractedMetadata.ExifProfileBase64))
                 exifProfile = new ExifProfile(Convert.FromBase64String(extractedMetadata.ExifProfileBase64));
