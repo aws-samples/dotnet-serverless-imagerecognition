@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Common;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 
 namespace thumbnail
 {
@@ -10,6 +11,7 @@ namespace thumbnail
     [JsonSerializable(typeof(TransformedMetadata))]
     [JsonSerializable(typeof(string))]
     [JsonSerializable(typeof(System.String))]
+    [JsonSerializable(typeof(ExifProfile))]
     public partial class CustomJsonSerializerContext : JsonSerializerContext
     {
         // By using this partial class derived from JsonSerializerContext, we can generate reflection free JSON Serializer code at compile time
