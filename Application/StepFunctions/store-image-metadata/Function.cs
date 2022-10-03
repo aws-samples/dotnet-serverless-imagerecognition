@@ -60,10 +60,10 @@ namespace store_image_metadata
         {
             var logger = new ImageRecognitionLogger(input, context);
 
-            var thumbnail = JsonSerializer.Deserialize(JsonSerializer.Serialize(input.ParallelResults[1],CustomJsonSerializerContext.Default.Object),
+            var thumbnail = JsonSerializer.Deserialize(JsonSerializer.Serialize(input.ParallelResults[1]),
                 CustomJsonSerializerContext.Default.Thumbnail);
 
-            var labels = JsonSerializer.Deserialize(JsonSerializer.Serialize(input.ParallelResults[0], CustomJsonSerializerContext.Default.Object),
+            var labels = JsonSerializer.Deserialize(JsonSerializer.Serialize(input.ParallelResults[0]),
                 CustomJsonSerializerContext.Default.ListLabel);
             
             var photoUpdate = new Photo

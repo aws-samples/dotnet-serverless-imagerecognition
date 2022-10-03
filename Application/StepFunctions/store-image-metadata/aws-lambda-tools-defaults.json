@@ -5,12 +5,13 @@
     "dotnet lambda help",
     "All the command line options for the Lambda command can be specified in this file."
   ],
-  "profile": "default",
-  "region": "us-west-2",
+  "profile": "",
+  "region": "",
   "configuration": "Release",
-  "function-runtime": "dotnet6",
+  "function-runtime": "provided.al2",
   "function-memory-size": 256,
   "function-timeout": 30,
-  "function-handler": "store-image-metadata::store_image_metadata.Function::FunctionHandler",
-  "docker-host-build-output-dir": "./bin/Release/net6.0/linux-x64/publish"
+  "function-handler": "bootstrap",
+  "msbuild-parameters": "--self-contained true",
+  "template-parameters": ""
 }
