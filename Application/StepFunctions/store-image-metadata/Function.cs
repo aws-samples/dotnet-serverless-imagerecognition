@@ -58,49 +58,57 @@ namespace store_image_metadata
         /// <returns></returns>
         private static async Task FunctionHandler(InputEvent input, ILambdaContext context)
         {
-            var logger = new ImageRecognitionLogger(input, context);
-
-            var thumbnail = JsonSerializer.Deserialize(JsonSerializer.Serialize(input.ParallelResults[1]),
-                CustomJsonSerializerContext.Default.Thumbnail);
-
-            var labels = JsonSerializer.Deserialize(JsonSerializer.Serialize(input.ParallelResults[0]),
-                CustomJsonSerializerContext.Default.ListLabel);
-            
-            var photoUpdate = new Photo
+            try
             {
-                PhotoId = WebUtility.UrlDecode(input.PhotoId),
-                ProcessingStatus = ProcessingStatus.Succeeded,
-                FullSize = new PhotoImage
+                var logger = new ImageRecognitionLogger(input, context);
+
+                var thumbnail = JsonSerializer.Deserialize(JsonSerializer.Serialize(input.ParallelResults[1]),
+                    CustomJsonSerializerContext.Default.Thumbnail);
+
+                var labels = JsonSerializer.Deserialize(JsonSerializer.Serialize(input.ParallelResults[0]),
+                    CustomJsonSerializerContext.Default.ListLabel);
+
+                var photoUpdate = new Photo
                 {
-                    Key = WebUtility.UrlDecode(input.SourceKey),
-                    Width = input.ExtractedMetadata?.Dimensions?.Width,
-                    Height = input.ExtractedMetadata?.Dimensions?.Height
-                },
-                Format = input.ExtractedMetadata?.Format,
-                ExifMake = input.ExtractedMetadata?.ExifMake,
-                ExifModel = input.ExtractedMetadata?.ExifModel,
-                Thumbnail = new PhotoImage
-                {
-                    Key = WebUtility.UrlDecode(thumbnail?.s3key),
-                    Width = thumbnail?.width,
-                    Height = thumbnail?.height
-                },
-                ObjectDetected = labels.Select(l => l.Name).ToArray(),
-                GeoLocation = input.ExtractedMetadata?.Geo,
-                UpdatedDate = DateTime.UtcNow
-            };
+                    PhotoId = WebUtility.UrlDecode(input.PhotoId),
+                    ProcessingStatus = ProcessingStatus.Succeeded,
+                    FullSize = new PhotoImage
+                    {
+                        Key = WebUtility.UrlDecode(input.SourceKey),
+                        Width = input.ExtractedMetadata?.Dimensions?.Width,
+                        Height = input.ExtractedMetadata?.Dimensions?.Height
+                    },
+                    Format = input.ExtractedMetadata?.Format,
+                    ExifMake = input.ExtractedMetadata?.ExifMake,
+                    ExifModel = input.ExtractedMetadata?.ExifModel,
+                    Thumbnail = new PhotoImage
+                    {
+                        Key = WebUtility.UrlDecode(thumbnail?.s3key),
+                        Width = thumbnail?.width,
+                        Height = thumbnail?.height
+                    },
+                    ObjectDetected = labels.Select(l => l.Name).ToArray(),
+                    GeoLocation = input.ExtractedMetadata?.Geo,
+                    UpdatedDate = DateTime.UtcNow
+                };
 
-            // update photo table.
-            await _ddbContext.SaveAsync(photoUpdate).ConfigureAwait(false);
+                // update photo table.
+                await _ddbContext.SaveAsync(photoUpdate).ConfigureAwait(false);
 
-            var data = JsonSerializer.Serialize(photoUpdate, CustomJsonSerializerContext.Default.Photo);
+                var data = JsonSerializer.Serialize(photoUpdate, CustomJsonSerializerContext.Default.Photo);
 
-            await logger.WriteMessageAsync(
-                new MessageEvent
-                    {Message = "Photo recognition metadata stored succesfully", Data = data, CompleteEvent = true},
-                ImageRecognitionLogger.Target.All);
+                await logger.WriteMessageAsync(
+                    new MessageEvent
+                    { Message = "Photo recognition metadata stored succesfully", Data = data, CompleteEvent = true },
+                    ImageRecognitionLogger.Target.All);
 
-            Console.WriteLine(data);
+                Console.WriteLine(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
         }
     }
 }
