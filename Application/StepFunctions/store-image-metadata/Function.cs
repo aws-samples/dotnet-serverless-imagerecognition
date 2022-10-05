@@ -1,18 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Amazon;
 using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.DataModel;
-using Amazon.DynamoDBv2.DocumentModel;
-using Amazon.DynamoDBv2.Model;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
-using Amazon.Util;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Common;
 
@@ -22,16 +16,10 @@ namespace store_image_metadata
     {
         private const string PHOTO_TABLE = "PHOTO_TABLE";
         private static readonly IAmazonDynamoDB _ddbClient = new AmazonDynamoDBClient();
-        private static DynamoDBContext _ddbContext;
 
         static Function()
         {
             AWSSDKHandler.RegisterXRayForAllServices();
-
-            _ddbContext = new DynamoDBContext(_ddbClient);
-
-            AWSConfigsDynamoDB.Context
-                .AddMapping(new TypeMapping(typeof(Photo), Environment.GetEnvironmentVariable(PHOTO_TABLE)));
         }
 
         /// <summary>
@@ -92,9 +80,11 @@ namespace store_image_metadata
                     UpdatedDate = DateTime.UtcNow
                 };
 
-                await _ddbClient.PutItemAsync(PHOTO_TABLE, photo.ToDynamoDBAttributes()).ConfigureAwait(false);
-
                 var data = JsonSerializer.Serialize(photo, CustomJsonSerializerContext.Default.Photo);
+
+                Console.WriteLine(data);
+
+                await _ddbClient.PutItemAsync(PHOTO_TABLE, photo.ToDynamoDBAttributes()).ConfigureAwait(false);
 
                 await logger.WriteMessageAsync(
                     new MessageEvent
@@ -104,7 +94,6 @@ namespace store_image_metadata
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                throw;
             }
         }
     }

@@ -17,14 +17,23 @@ namespace store_image_metadata
 
             item.Add("PhotoId", new AttributeValue(WebUtility.UrlDecode(photo.PhotoId)));
             item.Add("ProcessingStatus", new AttributeValue { N = status.ToString() });
-            item.Add("FullSize", new AttributeValue { M = photo.FullSize.ToDynamoAttributes() });
             item.Add("Format", new AttributeValue { S = photo.Format });
-            item.Add("ExifMake", new AttributeValue { S = photo.ExifMake });
-            item.Add("ExifModel", new AttributeValue { S = photo.ExifModel });
-            item.Add("Thumbnail", new AttributeValue { M = photo.Thumbnail.ToDynamoAttributes() });
-            item.Add("ObjectDetected", new AttributeValue { SS =  photo.ObjectDetected.ToList()});
             item.Add("UpdatedDate", new AttributeValue { S = photo.UpdatedDate.ToString() });
+            item.Add("FullSize", new AttributeValue { M = photo.FullSize.ToDynamoAttributes() });
+            item.Add("Thumbnail", new AttributeValue { M = photo.Thumbnail.ToDynamoAttributes() });
 
+            if (photo.ExifMake != null)
+            {
+                item.Add("ExifMake", new AttributeValue { S = photo.ExifMake });
+            }
+            if (photo.ExifModel != null)
+            {
+                item.Add("ExifModel", new AttributeValue { S = photo.ExifModel });
+            }
+            if (photo.ObjectDetected != null)
+            {
+                item.Add("ObjectDetected", new AttributeValue { SS = photo.ObjectDetected.ToList() });
+            }
             return item;
         }
 
@@ -32,9 +41,14 @@ namespace store_image_metadata
         {
             Dictionary<String, AttributeValue> item = new Dictionary<string, AttributeValue>();
             item.Add("Key", new AttributeValue { S = photoImage.Key });
-            item.Add("Width", new AttributeValue { N = photoImage.Width.ToString() });
-            item.Add("Height", new AttributeValue { N = photoImage.Height.ToString() });
-
+            if (photoImage.Width != null)
+            {
+                item.Add("Width", new AttributeValue { N = photoImage.Width.ToString() });
+            }
+            if (photoImage.Height != null)
+            {
+                item.Add("Height", new AttributeValue { N = photoImage.Height.ToString() });
+            }
             return item;
         }
     }
