@@ -68,8 +68,8 @@ namespace store_image_metadata
                     Height = input.ExtractedMetadata?.Dimensions?.Height
                 },
                 Format = input.ExtractedMetadata?.Format,
-                ExifMake = input.ExtractedMetadata?.ExifMake,
-                ExifModel = input.ExtractedMetadata?.ExifModel,
+                ExifMake = input.ExtractedMetadata?.ExifMake ?? string.Empty,
+                ExifModel = input.ExtractedMetadata?.ExifModel ?? string.Empty,
                 Thumbnail = new PhotoImage
                 {
                     Key = WebUtility.UrlDecode(thumbnail?.s3key),
@@ -80,17 +80,57 @@ namespace store_image_metadata
                 GeoLocation = input.ExtractedMetadata?.Geo,
                 UpdatedDate = DateTime.UtcNow
             };
+            int status = (int)photo.ProcessingStatus;
+
+            var request = new UpdateItemRequest
+            {
+                Key = new Dictionary<string, AttributeValue>()
+                {
+                    { "PhotoId", new AttributeValue { S = photo.PhotoId } }
+                },
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>()
+                {
+                    {":status",new AttributeValue { S = status.ToString() }},
+                    {":date",new AttributeValue { S = DateTime.UtcNow.ToString()}},
+                    {":objects",new AttributeValue { SS = photo.ObjectDetected.ToList() }},
+                    {":thumb",new AttributeValue { M = ToDynamoAttributes(photo.Thumbnail) } },
+                    {":full",new AttributeValue { M = ToDynamoAttributes(photo.FullSize) }},
+                    {":make",new AttributeValue { S = photo.ExifMake}},
+                    {":model",new AttributeValue { S = photo.ExifModel }},
+                },
+
+                UpdateExpression = "SET ProcessingStatus = :status, UpdatedDate = :date, ObjectDetected = :objects, Thumbnail = :thumb, FullSize = :full, ExifMake = :make, ExifModel = :model",
+
+                TableName = PHOTO_TABLE
+            };
+
+            Console.WriteLine(request.UpdateExpression);
 
             var data = JsonSerializer.Serialize(photo, CustomJsonSerializerContext.Default.Photo);
 
             Console.WriteLine(data);
 
-            await _ddbClient.UpdateItemAsync(photo.ToDynamoDBUpdateRequest(PHOTO_TABLE));
+            await _ddbClient.UpdateItemAsync(request);
 
             await logger.WriteMessageAsync(
                 new MessageEvent
                 { Message = "Photo recognition metadata stored succesfully", Data = data, CompleteEvent = true },
                 ImageRecognitionLogger.Target.All);
+        }
+
+        private static Dictionary<string, AttributeValue> ToDynamoAttributes(PhotoImage photoImage)
+        {
+            Dictionary<String, AttributeValue> item = new Dictionary<string, AttributeValue>();
+            item.Add("Key", new AttributeValue { S = photoImage.Key });
+            if (photoImage.Width != null)
+            {
+                item.Add("Width", new AttributeValue { N = photoImage.Width.ToString() });
+            }
+            if (photoImage.Height != null)
+            {
+                item.Add("Height", new AttributeValue { N = photoImage.Height.ToString() });
+            }
+            return item;
         }
     }
 }
