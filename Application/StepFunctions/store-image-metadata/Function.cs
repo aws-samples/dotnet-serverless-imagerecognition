@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
@@ -91,8 +92,8 @@ namespace store_image_metadata
                 ExpressionAttributeValues = new Dictionary<string, AttributeValue>()
                 {
                     {":status",new AttributeValue { S = status.ToString() }},
-                    {":date",new AttributeValue { S = DateTime.UtcNow.ToString()}},
-                    {":objects",new AttributeValue { SS = photo.ObjectDetected.ToList() }},
+                    {":date",new AttributeValue { S = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fff'Z'", CultureInfo.InvariantCulture)}},
+                    { ":objects",new AttributeValue { SS = photo.ObjectDetected.ToList() }},
                     {":thumb",new AttributeValue { M = ToDynamoAttributes(photo.Thumbnail) } },
                     {":full",new AttributeValue { M = ToDynamoAttributes(photo.FullSize) }},
                     {":make",new AttributeValue { S = photo.ExifMake}},

@@ -20,6 +20,7 @@ using System.Diagnostics.CodeAnalysis;
 using Amazon.DynamoDBv2.Model;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Globalization;
 
 namespace s3Trigger
 {
@@ -93,10 +94,10 @@ namespace s3Trigger
                 {
                     {":sfnArn",new AttributeValue { S = stepResponse.ExecutionArn }},
                     {":status",new AttributeValue { S = status.ToString() }},
-                    {":date",new AttributeValue { S = DateTime.UtcNow.ToString()}}
+                    {":date",new AttributeValue { S = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fff'Z'", CultureInfo.InvariantCulture)}},
                 },
 
-                UpdateExpression = "SET SfnExecutionArn = :sfnArn, ProcessingStatus = :status, UploadTime = :date",
+                UpdateExpression = "SET SfnExecutionArn = :sfnArn, ProcessingStatus = :status, UpdatedDate = :date",
 
                 TableName = PHOTO_TABLE
             };
