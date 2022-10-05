@@ -16,7 +16,7 @@ namespace store_image_metadata
 {
     public class Function
     {
-        private const string PHOTO_TABLE = "PHOTO_TABLE";
+        private static readonly string PHOTO_TABLE = Environment.GetEnvironmentVariable("PHOTO_TABLE") ?? string.Empty;
         private static readonly IAmazonDynamoDB _ddbClient = new AmazonDynamoDBClient();
 
         static Function()
@@ -31,7 +31,8 @@ namespace store_image_metadata
         private static async Task Main()
         {
             Func<InputEvent, ILambdaContext, Task> handler = FunctionHandler;
-            await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<CustomJsonSerializerContext>(options => {
+            await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<CustomJsonSerializerContext>(options =>
+            {
                 options.PropertyNameCaseInsensitive = true;
             }))
                 .Build()
@@ -47,61 +48,49 @@ namespace store_image_metadata
         /// <returns></returns>
         private static async Task FunctionHandler(InputEvent input, ILambdaContext context)
         {
-            try
+            var logger = new ImageRecognitionLogger(input, context);
+
+            var thumbnail = JsonSerializer.Deserialize(JsonSerializer.Serialize(input.ParallelResults[1]),
+                CustomJsonSerializerContext.Default.Thumbnail);
+
+            var labels = JsonSerializer.Deserialize(JsonSerializer.Serialize(input.ParallelResults[0]),
+                CustomJsonSerializerContext.Default.ListLabel);
+
+
+            var photo = new Photo
             {
-                var logger = new ImageRecognitionLogger(input, context);
-
-                var thumbnail = JsonSerializer.Deserialize(JsonSerializer.Serialize(input.ParallelResults[1]),
-                    CustomJsonSerializerContext.Default.Thumbnail);
-
-                var labels = JsonSerializer.Deserialize(JsonSerializer.Serialize(input.ParallelResults[0]),
-                    CustomJsonSerializerContext.Default.ListLabel);
-
-
-                var photo = new Photo
+                PhotoId = WebUtility.UrlDecode(input.PhotoId),
+                ProcessingStatus = ProcessingStatus.Succeeded,
+                FullSize = new PhotoImage
                 {
-                    PhotoId = WebUtility.UrlDecode(input.PhotoId),
-                    ProcessingStatus = ProcessingStatus.Succeeded,
-                    FullSize = new PhotoImage
-                    {
-                        Key = WebUtility.UrlDecode(input.SourceKey),
-                        Width = input.ExtractedMetadata?.Dimensions?.Width,
-                        Height = input.ExtractedMetadata?.Dimensions?.Height
-                    },
-                    Format = input.ExtractedMetadata?.Format,
-                    ExifMake = input.ExtractedMetadata?.ExifMake,
-                    ExifModel = input.ExtractedMetadata?.ExifModel,
-                    Thumbnail = new PhotoImage
-                    {
-                        Key = WebUtility.UrlDecode(thumbnail?.s3key),
-                        Width = thumbnail?.width,
-                        Height = thumbnail?.height
-                    },
-                    ObjectDetected = labels.Select(l => l.Name).ToArray(),
-                    GeoLocation = input.ExtractedMetadata?.Geo,
-                    UpdatedDate = DateTime.UtcNow
-                };
-
-                var data = JsonSerializer.Serialize(photo, CustomJsonSerializerContext.Default.Photo);
-
-                Console.WriteLine(data);
-
-                Dictionary<string, AttributeValue> dynamoKey = new Dictionary<string, AttributeValue>
+                    Key = WebUtility.UrlDecode(input.SourceKey),
+                    Width = input.ExtractedMetadata?.Dimensions?.Width,
+                    Height = input.ExtractedMetadata?.Dimensions?.Height
+                },
+                Format = input.ExtractedMetadata?.Format,
+                ExifMake = input.ExtractedMetadata?.ExifMake,
+                ExifModel = input.ExtractedMetadata?.ExifModel,
+                Thumbnail = new PhotoImage
                 {
-                    {"PhotoId", new AttributeValue{S = photo.PhotoId } },
-                };
+                    Key = WebUtility.UrlDecode(thumbnail?.s3key),
+                    Width = thumbnail?.width,
+                    Height = thumbnail?.height
+                },
+                ObjectDetected = labels.Select(l => l.Name).ToArray(),
+                GeoLocation = input.ExtractedMetadata?.Geo,
+                UpdatedDate = DateTime.UtcNow
+            };
 
-                await _ddbClient.UpdateItemAsync(PHOTO_TABLE, dynamoKey, photo.ToDynamoDBAttributes()).ConfigureAwait(false);
+            var data = JsonSerializer.Serialize(photo, CustomJsonSerializerContext.Default.Photo);
 
-                await logger.WriteMessageAsync(
-                    new MessageEvent
-                    { Message = "Photo recognition metadata stored succesfully", Data = data, CompleteEvent = true },
-                    ImageRecognitionLogger.Target.All);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            Console.WriteLine(data);
+
+            await _ddbClient.UpdateItemAsync(photo.ToDynamoDBUpdateRequest(PHOTO_TABLE));
+
+            await logger.WriteMessageAsync(
+                new MessageEvent
+                { Message = "Photo recognition metadata stored succesfully", Data = data, CompleteEvent = true },
+                ImageRecognitionLogger.Target.All);
         }
     }
 }
