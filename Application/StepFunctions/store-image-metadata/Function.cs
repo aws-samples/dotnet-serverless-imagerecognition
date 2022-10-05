@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.DocumentModel;
+using Amazon.DynamoDBv2.Model;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
@@ -14,25 +16,22 @@ using Amazon.Util;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Common;
 
-// Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-[assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
-
 namespace store_image_metadata
 {
     public class Function
     {
         private const string PHOTO_TABLE = "PHOTO_TABLE";
         private static readonly IAmazonDynamoDB _ddbClient = new AmazonDynamoDBClient();
-        private static readonly DynamoDBContext _ddbContext;
+        private static DynamoDBContext _ddbContext;
 
         static Function()
         {
             AWSSDKHandler.RegisterXRayForAllServices();
 
+            _ddbContext = new DynamoDBContext(_ddbClient);
+
             AWSConfigsDynamoDB.Context
                 .AddMapping(new TypeMapping(typeof(Photo), Environment.GetEnvironmentVariable(PHOTO_TABLE)));
-
-            _ddbContext = new DynamoDBContext(_ddbClient);
         }
 
         /// <summary>
@@ -68,7 +67,8 @@ namespace store_image_metadata
                 var labels = JsonSerializer.Deserialize(JsonSerializer.Serialize(input.ParallelResults[0]),
                     CustomJsonSerializerContext.Default.ListLabel);
 
-                var photoUpdate = new Photo
+
+                var photo = new Photo
                 {
                     PhotoId = WebUtility.UrlDecode(input.PhotoId),
                     ProcessingStatus = ProcessingStatus.Succeeded,
@@ -92,17 +92,14 @@ namespace store_image_metadata
                     UpdatedDate = DateTime.UtcNow
                 };
 
-                // update photo table.
-                await _ddbContext.SaveAsync(photoUpdate).ConfigureAwait(false);
+                await _ddbClient.PutItemAsync(PHOTO_TABLE, photo.ToDynamoDBAttributes()).ConfigureAwait(false);
 
-                var data = JsonSerializer.Serialize(photoUpdate, CustomJsonSerializerContext.Default.Photo);
+                var data = JsonSerializer.Serialize(photo, CustomJsonSerializerContext.Default.Photo);
 
                 await logger.WriteMessageAsync(
                     new MessageEvent
                     { Message = "Photo recognition metadata stored succesfully", Data = data, CompleteEvent = true },
                     ImageRecognitionLogger.Target.All);
-
-                Console.WriteLine(data);
             }
             catch (Exception ex)
             {

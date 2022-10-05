@@ -8,10 +8,8 @@ namespace store_image_metadata
     [JsonSerializable(typeof(InputEvent))]
     [JsonSerializable(typeof(Photo))]
     [JsonSerializable(typeof(PhotoImage))]
-    [JsonSerializable(typeof(Label))]
     [JsonSerializable(typeof(List<Label>))]
     [JsonSerializable(typeof(Thumbnail))]
-    [JsonSerializable(typeof(object))]
     [JsonSerializable(typeof(string))]
     [JsonSerializable(typeof(System.String))]
     public partial class CustomJsonSerializerContext : JsonSerializerContext

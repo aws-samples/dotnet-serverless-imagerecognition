@@ -330,3 +330,4 @@ ASALocalRun/
 .mfractor/
 *.zip
 /Application/deleteme
+/Application/s3Trigger/updated.template
