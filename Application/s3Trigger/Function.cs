@@ -89,12 +89,6 @@ namespace s3Trigger
                 {
                     { "PhotoId", new AttributeValue { S = photoId } }
                 },
-                ExpressionAttributeNames = new Dictionary<string, string>()
-                {
-                    { "#SFN", "SfnExecutionArn" },
-                    { "#PS", "ProcessingStatus" },
-                    { "#UD", "UpdatedDate" }
-                },
                 ExpressionAttributeValues = new Dictionary<string, AttributeValue>()
                 {
                     {":sfnArn",new AttributeValue { S = stepResponse.ExecutionArn }},
@@ -102,10 +96,9 @@ namespace s3Trigger
                     {":date",new AttributeValue { S = DateTime.UtcNow.ToString()}}
                 },
 
-                UpdateExpression = "ADD #SFN :sfnArn SET #PS = :status, #UD =:date",
+                UpdateExpression = "SET SfnExecutionArn = :sfnArn, ProcessingStatus = :status, UploadTime = :date",
 
-                TableName = PHOTO_TABLE,
-                ReturnValues = "UPDATED_NEW"
+                TableName = PHOTO_TABLE
             };
 
             await _ddbClient.UpdateItemAsync(request);
