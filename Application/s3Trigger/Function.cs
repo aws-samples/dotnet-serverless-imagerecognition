@@ -25,10 +25,9 @@ namespace s3Trigger
     public class Function
     {
         private static readonly string STATE_MACHINE_ARN = Environment.GetEnvironmentVariable("STATE_MACHINE_ARN") ?? string.Empty;
-        private static readonly string PHOTO_TABLE = Environment.GetEnvironmentVariable(PHOTO_TABLE) ?? string.Empty;
+        private static readonly string PHOTO_TABLE = Environment.GetEnvironmentVariable("PHOTO_TABLE") ?? string.Empty;
         private static readonly IAmazonDynamoDB _ddbClient = new AmazonDynamoDBClient();
         private static readonly IAmazonStepFunctions _stepClient = new AmazonStepFunctionsClient();
-        private static string _stateMachineArn;
 
         static Function()
         {
@@ -75,7 +74,7 @@ namespace s3Trigger
 
             var stepResponse = await _stepClient.StartExecutionAsync(new StartExecutionRequest
             {
-                StateMachineArn = _stateMachineArn,
+                StateMachineArn = STATE_MACHINE_ARN,
                 Name = $"{MakeSafeName(key, 80)}",
                 Input = JsonSerializer.Serialize(input, CustomJsonSerializerContext.Default.SfnInput)
             }).ConfigureAwait(false);
