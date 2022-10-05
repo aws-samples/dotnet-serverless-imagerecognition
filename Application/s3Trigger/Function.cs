@@ -19,6 +19,7 @@ using System.Text.Json;
 using System.Diagnostics.CodeAnalysis;
 using Amazon.DynamoDBv2.Model;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace s3Trigger
 {
@@ -79,15 +80,12 @@ namespace s3Trigger
                 Input = JsonSerializer.Serialize(input, CustomJsonSerializerContext.Default.SfnInput)
             }).ConfigureAwait(false);
 
-            int status = (int)ProcessingStatus.Running;
+            Dictionary<string, AttributeValue> dynamoKey = new Dictionary<string, AttributeValue>
+            {
+                {"PhotoId", new AttributeValue{S = photoId } },
+            };
 
-            Dictionary<String, AttributeValue> item = new Dictionary<string, AttributeValue>(3);
-            item.Add("PhotoId", new AttributeValue(photoId));
-            item.Add("SfnExecutionArn", new AttributeValue { S = stepResponse.ExecutionArn });
-            item.Add("ProcessingStatus", new AttributeValue { N = status.ToString() });
-            item.Add("UpdatedDate", new AttributeValue { S = DateTime.UtcNow.ToString() });
-
-            await _ddbClient.PutItemAsync(PHOTO_TABLE, item).ConfigureAwait(false);
+            await _ddbClient.UpdateItemAsync(PHOTO_TABLE, dynamoKey, stepResponse.ToDynamoDBAttributes()).ConfigureAwait(false);
         }
 
         public static string MakeSafeName(string displayName, int maxSize)
@@ -105,5 +103,6 @@ namespace s3Trigger
 
             return name;
         }
+
     }
 }

@@ -10,29 +10,29 @@ using System.Threading.Tasks;
 namespace store_image_metadata
 {
     public static class ProtoMapper {
-        public static Dictionary<string, AttributeValue> ToDynamoDBAttributes(this Photo photo)
+        public static Dictionary<string, AttributeValueUpdate> ToDynamoDBAttributes(this Photo photo)
         {
             int status = (int)photo.ProcessingStatus;
-            Dictionary<String, AttributeValue> item = new Dictionary<string, AttributeValue>();
+            Dictionary<String, AttributeValueUpdate> item = new Dictionary<string, AttributeValueUpdate>();
 
-            item.Add("PhotoId", new AttributeValue(WebUtility.UrlDecode(photo.PhotoId)));
-            item.Add("ProcessingStatus", new AttributeValue { N = status.ToString() });
-            item.Add("Format", new AttributeValue { S = photo.Format });
-            item.Add("UpdatedDate", new AttributeValue { S = photo.UpdatedDate.ToString() });
-            item.Add("FullSize", new AttributeValue { M = photo.FullSize.ToDynamoAttributes() });
-            item.Add("Thumbnail", new AttributeValue { M = photo.Thumbnail.ToDynamoAttributes() });
+            //item["PhotoId"] = ConvertToStringAttributeUpdateValue(photo.PhotoId);
+            item["ProcessingStatus"] = ConvertToNumberAttributeUpdateValue(status.ToString());
+            item["Format"] = ConvertToStringAttributeUpdateValue(photo.PhotoId);
+            item["UpdatedDate"] = ConvertToStringAttributeUpdateValue(photo.PhotoId);
+            item["FullSize"] = ConvertToMapAttributeUpdateValue (photo.FullSize.ToDynamoAttributes());
+            item["Thumbnail"] = ConvertToMapAttributeUpdateValue(photo.Thumbnail.ToDynamoAttributes());
 
             if (photo.ExifMake != null)
             {
-                item.Add("ExifMake", new AttributeValue { S = photo.ExifMake });
+                item["ExifMake"] = ConvertToStringAttributeUpdateValue(photo.ExifMake);
             }
             if (photo.ExifModel != null)
             {
-                item.Add("ExifModel", new AttributeValue { S = photo.ExifModel });
+                item["ExifModel"] = ConvertToStringAttributeUpdateValue(photo.ExifModel);
             }
             if (photo.ObjectDetected != null)
             {
-                item.Add("ObjectDetected", new AttributeValue { SS = photo.ObjectDetected.ToList() });
+                item["ObjectDetected"] = ConvertToArrayAttributeUpdateValue(photo.ObjectDetected.ToList());
             }
             return item;
         }
@@ -40,16 +40,60 @@ namespace store_image_metadata
         private static Dictionary<string, AttributeValue> ToDynamoAttributes(this PhotoImage photoImage)
         {
             Dictionary<String, AttributeValue> item = new Dictionary<string, AttributeValue>();
-            item.Add("Key", new AttributeValue { S = photoImage.Key });
+            item["Key"] = ConvertToAttributeValue(photoImage.Key);
             if (photoImage.Width != null)
             {
-                item.Add("Width", new AttributeValue { N = photoImage.Width.ToString() });
+                item["Width"] = ConvertToAttributeValue(photoImage.Width.ToString());
             }
             if (photoImage.Height != null)
             {
-                item.Add("Height", new AttributeValue { N = photoImage.Height.ToString() });
+                item["Height"] = ConvertToAttributeValue(photoImage.Height.ToString());
             }
             return item;
+        }
+
+        internal static AttributeValue ConvertToAttributeValue(string attributeValue)
+        {
+            return new AttributeValue
+            {
+                S = attributeValue
+            };
+        }
+
+        internal static AttributeValueUpdate ConvertToStringAttributeUpdateValue(string attributeValue)
+        {
+            return new AttributeValueUpdate
+            {
+                Action = "PUT",
+                Value = new AttributeValue { S = attributeValue }
+            };
+        }
+
+        internal static AttributeValueUpdate ConvertToNumberAttributeUpdateValue(string attributeValue)
+        {
+            return new AttributeValueUpdate
+            {
+                Action = "PUT",
+                Value = new AttributeValue { N = attributeValue }
+            };
+        }
+
+        internal static AttributeValueUpdate ConvertToArrayAttributeUpdateValue(List<string> attributeValue)
+        {
+            return new AttributeValueUpdate
+            {
+                Action = "PUT",
+                Value = new AttributeValue { SS = attributeValue }
+            };
+        }
+
+        internal static AttributeValueUpdate ConvertToMapAttributeUpdateValue(Dictionary<string, AttributeValue> attributeValue)
+        {
+            return new AttributeValueUpdate
+            {
+                Action = "PUT",
+                Value = new AttributeValue { M = attributeValue }
+            };
         }
     }
 }

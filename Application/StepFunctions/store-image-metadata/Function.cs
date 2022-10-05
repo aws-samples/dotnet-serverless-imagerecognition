@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.Model;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
@@ -84,7 +86,12 @@ namespace store_image_metadata
 
                 Console.WriteLine(data);
 
-                await _ddbClient.PutItemAsync(PHOTO_TABLE, photo.ToDynamoDBAttributes()).ConfigureAwait(false);
+                Dictionary<string, AttributeValue> dynamoKey = new Dictionary<string, AttributeValue>
+                {
+                    {"PhotoId", new AttributeValue{S = photo.PhotoId } },
+                };
+
+                await _ddbClient.UpdateItemAsync(PHOTO_TABLE, dynamoKey, photo.ToDynamoDBAttributes()).ConfigureAwait(false);
 
                 await logger.WriteMessageAsync(
                     new MessageEvent
