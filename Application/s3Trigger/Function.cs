@@ -42,9 +42,10 @@ namespace s3Trigger
         private static async Task Main()
         {
             Func<S3Event, ILambdaContext, Task> handler = FunctionHandler;
-            await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<CustomJsonSerializerContext>(options => {
-                    options.PropertyNameCaseInsensitive = true;
-                }))
+            await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<CustomJsonSerializerContext>(options =>
+            {
+                options.PropertyNameCaseInsensitive = true;
+            }))
                 .Build()
                 .RunAsync();
         }
@@ -80,12 +81,34 @@ namespace s3Trigger
                 Input = JsonSerializer.Serialize(input, CustomJsonSerializerContext.Default.SfnInput)
             }).ConfigureAwait(false);
 
-            Dictionary<string, AttributeValue> dynamoKey = new Dictionary<string, AttributeValue>
+            int status = (int)ProcessingStatus.Running;
+
+            var request = new UpdateItemRequest
             {
-                {"PhotoId", new AttributeValue{S = photoId } },
+                Key = new Dictionary<string, AttributeValue>()
+                {
+                    { "PhotoId", new AttributeValue { S = photoId } }
+                },
+                ExpressionAttributeNames = new Dictionary<string, string>()
+                {
+                    { "#SFN", "SfnExecutionArn" },
+                    { "#PS", "ProcessingStatus" },
+                    { "#UD", "UpdatedDate" }
+                },
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>()
+                {
+                    {":sfnArn",new AttributeValue { S = stepResponse.ExecutionArn }},
+                    {":status",new AttributeValue { S = status.ToString() }},
+                    {":date",new AttributeValue { S = DateTime.UtcNow.ToString()}}
+                },
+
+                UpdateExpression = "ADD #SFN :sfnArn SET #PS = :status, #UD =:date",
+
+                TableName = PHOTO_TABLE,
+                ReturnValues = "UPDATED_NEW"
             };
 
-            await _ddbClient.UpdateItemAsync(PHOTO_TABLE, dynamoKey, stepResponse.ToDynamoDBAttributes()).ConfigureAwait(false);
+            await _ddbClient.UpdateItemAsync(request);
         }
 
         public static string MakeSafeName(string displayName, int maxSize)

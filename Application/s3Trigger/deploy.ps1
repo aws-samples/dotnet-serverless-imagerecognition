@@ -4,4 +4,4 @@ remove-item .\s3Trigger.zip
 Compress-Archive .\publish\bootstrap s3Trigger.zip
 docker rm net7-native-build-container
 dotnet lambda package-ci --template serverless.template --output-template updated.template --s3-bucket img-imagerecognitionartifactstore-12acumvjm8twe --s3-prefix s3Trigger --region us-east-2
-aws cloudformation deploy --template-file updated.template --region us-east-2 --stack-name img2 --capabilities CAPABILITY_IAM
+aws cloudformation deploy --template-file updated.template --region us-east-2 --stack-name img --capabilities CAPABILITY_IAM

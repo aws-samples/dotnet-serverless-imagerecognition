@@ -20,7 +20,7 @@ namespace s3Trigger
 
             items["SfnExecutionArn"] = ConvertToAttributeUpdateValue(stepResponse.ExecutionArn);
             items["ProcessingStatus"] = ConvertToAttributeUpdateValue(status.ToString());
-            items.Add("UpdatedDate", ConvertToAttributeUpdateValue(DateTime.UtcNow.ToString()));
+            items["UpdatedDate"] = ConvertToAttributeUpdateValue(DateTime.UtcNow.ToString());
 
             return items;
         }
@@ -28,6 +28,9 @@ namespace s3Trigger
         internal static AttributeValueUpdate ConvertToAttributeUpdateValue(string attributeValue)
         {
             AttributeValueUpdate attributeUpdate = new AttributeValueUpdate();
+
+            Console.WriteLine(attributeValue);
+
             if (attributeValue == null)
             {
                 attributeUpdate.Action = "DELETE";
