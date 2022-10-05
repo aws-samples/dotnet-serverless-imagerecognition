@@ -17,28 +17,22 @@ using Amazon.Lambda.RuntimeSupport;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using System.Diagnostics.CodeAnalysis;
+using Amazon.DynamoDBv2.Model;
+using System.Collections.Generic;
 
 namespace s3Trigger
 {
     public class Function
     {
-        private const string STATE_MACHINE_ARN = "STATE_MACHINE_ARN";
-        private const string PHOTO_TABLE = "PHOTO_TABLE";
+        private static readonly string STATE_MACHINE_ARN = Environment.GetEnvironmentVariable("STATE_MACHINE_ARN") ?? string.Empty;
+        private static readonly string PHOTO_TABLE = Environment.GetEnvironmentVariable(PHOTO_TABLE) ?? string.Empty;
         private static readonly IAmazonDynamoDB _ddbClient = new AmazonDynamoDBClient();
         private static readonly IAmazonStepFunctions _stepClient = new AmazonStepFunctionsClient();
-        private static DynamoDBContext _ddbContext;
         private static string _stateMachineArn;
 
         static Function()
         {
             AWSSDKHandler.RegisterXRayForAllServices();
-
-            _stateMachineArn = Environment.GetEnvironmentVariable(STATE_MACHINE_ARN) ?? string.Empty;
-
-            _ddbContext = new DynamoDBContext(_ddbClient);
-
-            AWSConfigsDynamoDB.Context.AddMapping(new TypeMapping(typeof(Photo),
-                Environment.GetEnvironmentVariable(PHOTO_TABLE)));
         }
 
         /// <summary>
@@ -86,15 +80,15 @@ namespace s3Trigger
                 Input = JsonSerializer.Serialize(input, CustomJsonSerializerContext.Default.SfnInput)
             }).ConfigureAwait(false);
 
-            var photo = new Photo
-            {
-                PhotoId = photoId,
-                SfnExecutionArn = stepResponse.ExecutionArn,
-                ProcessingStatus = ProcessingStatus.Running,
-                UpdatedDate = DateTime.UtcNow
-            };
+            int status = (int)ProcessingStatus.Running;
 
-            await _ddbContext.SaveAsync(photo).ConfigureAwait(false);
+            Dictionary<String, AttributeValue> item = new Dictionary<string, AttributeValue>(3);
+            item.Add("PhotoId", new AttributeValue(photoId));
+            item.Add("SfnExecutionArn", new AttributeValue { S = stepResponse.ExecutionArn });
+            item.Add("ProcessingStatus", new AttributeValue { N = status.ToString() });
+            item.Add("UpdatedDate", new AttributeValue { S = DateTime.UtcNow.ToString() });
+
+            await _ddbClient.PutItemAsync(PHOTO_TABLE, item).ConfigureAwait(false);
         }
 
         public static string MakeSafeName(string displayName, int maxSize)
