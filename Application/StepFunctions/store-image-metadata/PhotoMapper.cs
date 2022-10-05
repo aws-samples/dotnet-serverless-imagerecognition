@@ -17,25 +17,25 @@ namespace store_image_metadata
 
             item.Add("PhotoId", new AttributeValue(WebUtility.UrlDecode(photo.PhotoId)));
             item.Add("ProcessingStatus", new AttributeValue { N = status.ToString() });
-            item.Add("FullSize", new AttributeValue { M = photo.FullSize.ToDynamoDocument().ToAttributeMap() });
+            item.Add("FullSize", new AttributeValue { M = photo.FullSize.ToDynamoAttributes() });
             item.Add("Format", new AttributeValue { S = photo.Format });
             item.Add("ExifMake", new AttributeValue { S = photo.ExifMake });
             item.Add("ExifModel", new AttributeValue { S = photo.ExifModel });
-            item.Add("Thumbnail", new AttributeValue { M = photo.Thumbnail.ToDynamoDocument().ToAttributeMap() });
+            item.Add("Thumbnail", new AttributeValue { M = photo.Thumbnail.ToDynamoAttributes() });
             item.Add("ObjectDetected", new AttributeValue { SS =  photo.ObjectDetected.ToList()});
             item.Add("UpdatedDate", new AttributeValue { S = photo.UpdatedDate.ToString() });
 
             return item;
         }
 
-        private static Document ToDynamoDocument(this PhotoImage photoImage)
+        private static Dictionary<string, AttributeValue> ToDynamoAttributes(this PhotoImage photoImage)
         {
-            var document = new Document();
-            document["Key"] = photoImage.Key;
-            document["Width"] = photoImage.Width;
-            document["Height"] = photoImage.Height;
+            Dictionary<String, AttributeValue> item = new Dictionary<string, AttributeValue>();
+            item.Add("Key", new AttributeValue { S = photoImage.Key });
+            item.Add("Width", new AttributeValue { N = photoImage.Width.ToString() });
+            item.Add("Height", new AttributeValue { N = photoImage.Height.ToString() });
 
-            return document;
+            return item;
         }
     }
 }
