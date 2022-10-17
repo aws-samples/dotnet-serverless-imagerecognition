@@ -22,7 +22,7 @@ namespace ImageRecognition.BlazorWebAssembly
                 // For more information, see https://aka.ms/blazor-standalone-auth
                 builder.Configuration.Bind("Cognito", options.ProviderOptions);
                 
-                options.ProviderOptions.MetadataUrl = "https://x604hks3sj.execute-api.us-west-2.amazonaws.com/stage/.well-known/openid-configuration";
+                //options.ProviderOptions.MetadataUrl = "https://ph2ru2gzkh.execute-api.us-east-2.amazonaws.com/stage/.well-known/openid-configuration";
             });
 
             var appOptions = new AppOptions();
@@ -31,6 +31,7 @@ namespace ImageRecognition.BlazorWebAssembly
 
             builder.Services.AddScoped<IServiceClientFactory, ServiceClientFactory>();
             builder.Services.AddScoped<ICommunicationClientFactory, CommunicationClientFactory>();
+            builder.Services.AddScoped<IFileUploader, FileUploader>();
 
             await builder.Build().RunAsync();
         }

@@ -41,8 +41,12 @@ namespace ImageRecognition.BlazorWebAssembly
             accessTokenResult.TryGetToken(out var accessToken);
 
             var cws = new ClientWebSocket();
-            cws.Options.SetRequestHeader("Authorization", accessToken.Value);
-            await cws.ConnectAsync(new Uri(_appOptions.ImageRecognitionWebSocketAPI), cancellationToken);
+            
+            UriBuilder baseUri = new UriBuilder(_appOptions.ImageRecognitionWebSocketAPI);
+            baseUri.Query = "Authorization=Bearer " + accessToken.Value;
+
+            //cws.Options.SetRequestHeader("Authorization", "Bearer " + accessToken.Value);
+            await cws.ConnectAsync(baseUri.Uri, new CancellationToken());
 
             return new CommunicationClient(cws);
         }

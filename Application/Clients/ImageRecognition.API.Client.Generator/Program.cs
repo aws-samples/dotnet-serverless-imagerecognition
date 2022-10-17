@@ -10,7 +10,7 @@ namespace ImageRecognition.API.Client.Generator
     {
         static async Task Main(string[] args)
         {
-            var document = await OpenApiDocument.FromUrlAsync("https://localhost:5001/swagger/v1/swagger.json");
+            var document = await OpenApiDocument.FromUrlAsync("https://localhost:44381/swagger/v1/swagger.json");
 
             var settings = new CSharpClientGeneratorSettings
             {                

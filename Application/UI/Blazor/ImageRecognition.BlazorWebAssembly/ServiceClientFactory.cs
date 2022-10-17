@@ -13,6 +13,8 @@ namespace ImageRecognition.BlazorWebAssembly
         public Task<AlbumClient> CreateAlbumClient();
 
         public Task<PhotoClient> CreatePhotoClient();
+
+        public HttpClient CreateHttpClient();
     }
 
     public class ServiceClientFactory : IServiceClientFactory
@@ -54,6 +56,14 @@ namespace ImageRecognition.BlazorWebAssembly
             return photoClient;
         }
 
+        public HttpClient CreateHttpClient()
+        {
+            var httpClient = new HttpClient() {
+                BaseAddress = new Uri(_appOptions.ImageRecognitionApiUrl)
+            };
+
+            return httpClient;
+        }
 
         private async Task<HttpClient> ConstructHttpClient()
         {

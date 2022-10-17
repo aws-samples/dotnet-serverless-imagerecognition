@@ -100,7 +100,7 @@ namespace ImageRecognition.Communication.Functions
         public string ValidateAndGetUsername(APIGatewayProxyRequest request, ILambdaContext context)
         {
             string authorization;
-            if (!request.Headers.TryGetValue(AUTHORIZATION_HEADER, out authorization))
+            if (!request.QueryStringParameters.TryGetValue(AUTHORIZATION_HEADER, out authorization))
             {
                 context.Logger.LogLine("Error, no Authorization header found");
                 throw new Exception("Error, no Authorization header found");
@@ -129,7 +129,7 @@ namespace ImageRecognition.Communication.Functions
                 throw;
             }
 
-            return user.FindFirst("cognito:username")?.Value;
+            return user.FindFirst("username")?.Value;
         }
 
 
@@ -163,6 +163,7 @@ namespace ImageRecognition.Communication.Functions
             return new TokenValidationParameters
             {
                 ValidIssuer = validIssuer,
+                ValidateAudience = false,
                 ValidAudiences = new[] {userPoolClientId},
                 IssuerSigningKeys = openIdConfig.SigningKeys
             };
