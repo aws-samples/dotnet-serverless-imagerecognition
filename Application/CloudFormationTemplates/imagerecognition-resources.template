@@ -15,7 +15,12 @@
             "Default" : "",
             "MinLength" : "0",
             "Description" : "Optional certificate arn from ACM. If set an HTTPS listner will be configured."
-		}
+		},
+        "S3BucketName":{
+            "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/ImageRecognition/AWS/BlazorS3BucketName",
+            "Description" : "Blazor S3 Bucket."
+        }
     },
 
     "Conditions" : {
@@ -193,28 +198,18 @@
             }
         },
 
-        "BlazorWASMBucket": {
-            "Type": "AWS::S3::Bucket",
-            "Description": "",
-            "DeletionPolicy": "Delete",
-            "Properties": {
-            "WebsiteConfiguration" : {
-                "IndexDocument": "index.html"
-                }
-            }
-        },
         "S3BucketPolicy": {
           "Type": "AWS::S3::BucketPolicy",
           "Properties": {
             "Bucket": {
-              "Ref": "BlazorWASMBucket"
+              "Ref": "S3BucketName"
             },
             "PolicyDocument": {
               "Version": "2012-10-17",
               "Statement": [{
                 "Action": ["s3:GetObject"],
                 "Effect": "Allow",
-                "Resource": { "Fn::Join": ["", ["arn:aws:s3:::", { "Ref": "BlazorWASMBucket" }, "/*"]]},
+                "Resource": {"Fn::Sub": "arn:aws:s3:::${S3BucketName}/*" },
                 "Principal": {
                     "CanonicalUser": {"Fn::GetAtt" : [ "CfOriginAccessIdentity", "S3CanonicalUserId"]}
                 }
@@ -241,7 +236,7 @@
                         "CachedMethods": [ "GET", "HEAD"],
                         "Compress": "false",
                         "DefaultTTL": "86400",
-                        "TargetOriginId" : { "Fn::Join": ["-",[{"Ref": "AWS::StackName"},"s3-origin"]]},
+                        "TargetOriginId" : {"Fn::Sub": "s3-origin-${S3BucketName}" },
                         "ForwardedValues" : {
                             "Headers": ["Origin"],
                             "QueryString" : "false",
@@ -254,8 +249,8 @@
                     "IPV6Enabled": "false",
                    "PriceClass" : "PriceClass_All",
                    "Origins" : [ {
-                        "DomainName" : { "Fn::GetAtt" : [ "BlazorWASMBucket", "DomainName" ] },
-                        "Id" : { "Fn::Join": ["-",[{"Ref": "AWS::StackName"},"s3-origin"]]},
+                        "DomainName" : {"Fn::Sub": "${S3BucketName}.s3.amazonaws.com" },
+                        "Id" : {"Fn::Sub": "s3-origin-${S3BucketName}" },
                         "S3OriginConfig" : {
                             "OriginAccessIdentity" : { "Fn::Sub": "origin-access-identity/cloudfront/${CfOriginAccessIdentity}"} 
                             }
@@ -311,6 +306,7 @@
                 "Name": "/ImageRecognition/AWS/UserPoolId"
             }
         },
+
         "ParameterUserPoolClient": {
             "Type": "AWS::SSM::Parameter",
             "Description": "Stores the name of the UserPoolClient.",
@@ -361,12 +357,6 @@
     },
 
     "Outputs": {
-        "BlazorWASMBucket": {
-            "Description": "Stores the S3 Bucket Name for Blazor WASM.",
-                "Value": {
-                    "Ref": "BlazorWASMBucket"
-                },
-            "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-WASMBucket" }}
-        }
+        
      }
 }

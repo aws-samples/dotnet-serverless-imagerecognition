@@ -23,11 +23,7 @@
 		     "Type" : "String",
 			 "Default": "",
 			 "Description" : "GitHub repository OAuth token"
-		 },
-		 "BlazorS3Bucket":{
-            "Type": "AWS::SSM::Parameter::Value<String>",
-            "Default": "/ImageRecognition/AppOptions/StateMachineArn"
-        }
+		 }
 	},
 
 	"Resources" : {
@@ -126,12 +122,34 @@
             }
         },
 
-
 		"ImageRecognitionArtifactStore" : {
 		    "Type" : "AWS::S3::Bucket",
 		    "Properties" : {
 		    }
 		},
+
+		"BlazorWASMBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Description": "",
+            "DeletionPolicy": "Delete",
+            "Properties": {
+            "WebsiteConfiguration" : {
+                "IndexDocument": "index.html"
+                }
+            }
+        },
+
+		"ParameterBlazorS3BucketName": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the connection ids for the websocket connections made in the client.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "BlazorWASMBucket"
+                },
+                "Name": "/ImageRecognition/AWS/BlazorS3BucketName"
+            }
+        },
 
 		"ParameterImageRecognitionArtifactStore" : {
             "Type" : "AWS::SSM::Parameter",
@@ -560,7 +578,7 @@
 									}
 								],
 								"Configuration" : {
-									"BucketName": {"Fn::ImportValue" : {"Fn::Sub": "${AWS::StackName}-WASMBucket"}},
+									"BucketName": { "Ref" : "BlazorWASMBucket" },
 									"Extract": "true"
 								},
                                 "RunOrder" : 2
