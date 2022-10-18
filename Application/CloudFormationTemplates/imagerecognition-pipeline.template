@@ -23,12 +23,14 @@
 		     "Type" : "String",
 			 "Default": "",
 			 "Description" : "GitHub repository OAuth token"
-		 }
+		 },
+		 "BlazorS3Bucket":{
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/AppOptions/StateMachineArn"
+        }
 	},
 
 	"Resources" : {
-
-
 		"CodePipelineRole":{
 		  "Type":"AWS::IAM::Role",
 		  "Properties":{
@@ -124,35 +126,6 @@
             }
         },
 
-		"FrontendCluster": {
-            "Type": "AWS::ECS::Cluster",
-            "Description": "",
-            "Properties": {
-                "ClusterName": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "Frontend"
-                        ]
-                    ]
-                }
-            }
-        },
-
-		"ParameterFrontendCluster": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "Stores the ID of the cluster defined for our Fargate instances into Parameter Store.",
-            "Properties": {
-                "Type": "String",
-                "Value": {
-                    "Ref": "FrontendCluster"
-                },
-                "Name": "/ImageRecognition/FrontendCluster"
-            }
-        },
 
 		"ImageRecognitionArtifactStore" : {
 		    "Type" : "AWS::S3::Bucket",
@@ -243,7 +216,7 @@
                 "Environment" : {
 					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
                     "Type" : "LINUX_CONTAINER",
-                    "Image" : "aws/codebuild/standard:5.0",                    
+                    "Image" : "aws/codebuild/standard:6.0",                    
                     "PrivilegedMode" : true
 				},
 		        "Source"      : {
@@ -253,13 +226,13 @@
 		    }
 		},
 
-		"ImageRecognitionFrontendBuild" : {
+		"ImageRecognitionWASMBuild" : {
 		    "Type" : "AWS::CodeBuild::Project",
 		    "Properties" : {
 		        "Artifacts" : {
 					"Type" : "CODEPIPELINE"
 		        },
-		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-Blazor" ] ]},
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-BlazorWASM" ] ]},
 		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
                 "Environment" : {
 					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
@@ -268,7 +241,7 @@
                     "PrivilegedMode" : true
 				},
 		        "Source"      : {
-		            "BuildSpec" : "Application/UI/Blazor/ImageRecognition/buildspec.yml",
+		            "BuildSpec" : "Application/UI/Blazor/ImageRecognition.BlazorWebAssembly/buildspec.yml",
 		            "Type"      : "CODEPIPELINE"
 		        }
 		    }
@@ -569,15 +542,15 @@
 									}
 								],
                                 "Configuration" : {
-									"ProjectName" : { "Ref" : "ImageRecognitionFrontendBuild" }
+									"ProjectName" : { "Ref" : "ImageRecognitionWASMBuild" }
 								},
                                 "RunOrder" : 1
 							},
 							{
-								"Name" : "Create-ECSService",
+								"Name" : "Create-S3StaticFile",
 								"ActionTypeId" : {
 									"Category" : "Deploy",
-                                    "Provider" : "CloudFormation",
+                                    "Provider" : "S3",
                                     "Owner" : "AWS",
                                     "Version" : "1"
 								},
@@ -587,33 +560,10 @@
 									}
 								],
 								"Configuration" : {
-									"ActionMode" : "CREATE_UPDATE",
-									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ECSFrontend" ] ]},
-									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
-									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
-									"TemplatePath" : "TheSource::Application/UI/Blazor/ImageRecognition/ECS-Service.template"
+									"BucketName": {"Fn::ImportValue" : {"Fn::Sub": "${AWS::StackName}-WASMBucket"}},
+									"Extract": "true"
 								},
                                 "RunOrder" : 2
-							},
-							{
-								"Name" : "Deploy-BlazorFrontend",
-                                "ActionTypeId" : {
-									"Category" : "Deploy",
-                                    "Provider" : "ECS",
-                                    "Owner" : "AWS",
-                                    "Version" : "1"
-								},
-                                "InputArtifacts" : [
-									{
-										"Name" : "ImageRecognitionBlazorBundle"
-									}
-								],
-                                "Configuration" : {
-									"ClusterName" : { "Ref" : "FrontendCluster" },
-									"ServiceName":  "Frontend",
-									"FileName":  "imagedefinitions.json"
-								},
-								"RunOrder" : 3
 							}
 						]
 					}

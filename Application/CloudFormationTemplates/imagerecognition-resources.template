@@ -193,343 +193,74 @@
             }
         },
 
-        "FrontendRepository": {
-            "Type": "AWS::ECR::Repository",
-            "Description": "Repository holding the deployed web application images.",
-            "Properties": {}
-        },
-
-        "ImageRecognitionVpc": {
-            "Type": "AWS::EC2::VPC",
-            "Description": "Virtual Private Cloud to hold the running application and resources.",
-            "Properties": {
-                "CidrBlock": "10.0.0.0/16",
-                "Tags" : [
-                    {
-                        "Key" : "Name",
-                        "Value" : {
-                            "Ref": "AWS::StackName"
-                        }
-                    }
-                ]
-            }
-        },
-
-        "SubnetA": {
-            "Type": "AWS::EC2::Subnet",
-            "Description": "Public subnet",
-            "Properties": {
-                "CidrBlock": "10.0.0.0/24",
-                "VpcId": {
-                    "Ref": "ImageRecognitionVpc"
-                },
-                "MapPublicIpOnLaunch": "True",
-                "AvailabilityZone": {
-                    "Fn::Select": [
-                        "0",
-                        {
-                            "Fn::GetAZs": ""
-                        }
-                    ]
-                }
-            }
-        },
-
-        "SubnetB": {
-            "Type": "AWS::EC2::Subnet",
-            "Description": "Public subnet",
-            "Properties": {
-                "CidrBlock": "10.0.1.0/24",
-                "VpcId": {
-                    "Ref": "ImageRecognitionVpc"
-                },
-                "MapPublicIpOnLaunch": "True",
-                "AvailabilityZone": {
-                    "Fn::Select": [
-                        "1",
-                        {
-                            "Fn::GetAZs": ""
-                        }
-                    ]
-                }
-            }
-        },
-
-        "SubnetC": {
-            "Type": "AWS::EC2::Subnet",
-            "Description": "Public subnet",
-            "Properties": {
-                "CidrBlock": "10.0.2.0/24",
-                "VpcId": {
-                    "Ref": "ImageRecognitionVpc"
-                },
-                "MapPublicIpOnLaunch": "True",
-                "AvailabilityZone": {
-                    "Fn::Select": [
-                        "2",
-                        {
-                            "Fn::GetAZs": ""
-                        }
-                    ]
-                }
-            }
-        },
-
-        "InternetGateway": {
-            "Type": "AWS::EC2::InternetGateway",
-            "Description": "Gateway to provides connectivity to and from the internet for the VPC.",
-            "Properties": {}
-        },
-
-        "VPCGatewayAttachment": {
-            "Type": "AWS::EC2::VPCGatewayAttachment",
-            "Description": "Attach the internet gateway resource to the VPC",
-            "Properties": {
-                "VpcId": {
-                    "Ref": "ImageRecognitionVpc"
-                },
-                "InternetGatewayId": {
-                    "Ref": "InternetGateway"
-                }
-            }
-        },
-
-        "RouteTable": {
-            "Type": "AWS::EC2::RouteTable",
-            "Description": "Route table for the VPC.",
-            "Properties": {
-                "VpcId": {
-                    "Ref": "ImageRecognitionVpc"
-                }
-            }
-        },
-
-        "Route": {
-            "Type": "AWS::EC2::Route",
-            "Description": "Route permitting non-local traffic to egress to the internet from the VPC.",
-            "Properties": {
-                "RouteTableId": {
-                    "Ref": "RouteTable"
-                },
-                "DestinationCidrBlock": "0.0.0.0/0",
-                "GatewayId": {
-                    "Ref": "InternetGateway"
-                }
-            }
-        },
-
-        "SubnetARouteTableAssociation": {
-            "Type": "AWS::EC2::SubnetRouteTableAssociation",
-            "Description": "Route table association to permit traffic in subnet to reach gateway.",
-            "Properties": {
-                "RouteTableId": {
-                    "Ref": "RouteTable"
-                },
-                "SubnetId": {
-                    "Ref": "SubnetA"
-                }
-            }
-        },
-
-        "SubnetBRouteTableAssociation": {
-            "Type": "AWS::EC2::SubnetRouteTableAssociation",
-            "Description": "Route table association to permit traffic in subnet to reach gateway.",
-            "Properties": {
-                "RouteTableId": {
-                    "Ref": "RouteTable"
-                },
-                "SubnetId": {
-                    "Ref": "SubnetB"
-                }
-            }
-        },
-
-        "SubnetCRouteTableAssociation": {
-            "Type": "AWS::EC2::SubnetRouteTableAssociation",
-            "Description": "Route table association to permit traffic in subnet to reach gateway.",
-            "Properties": {
-                "RouteTableId": {
-                    "Ref": "RouteTable"
-                },
-                "SubnetId": {
-                    "Ref": "SubnetC"
-                }
-            }
-        },
-
-        "FrontendTaskRole": {
-            "Type": "AWS::IAM::Role",
-            "Description": "Role permissions to be used by instances surfacing the web application.",
-            "Properties": {
-                "AssumeRolePolicyDocument": {
-                    "Version": "2008-10-17",
-                    "Statement": [
-                        {
-                            "Sid": "",
-                            "Effect": "Allow",
-                            "Principal": {
-                                "Service": "ecs-tasks.amazonaws.com"
-                            },
-                            "Action": "sts:AssumeRole"
-                        }
-                    ]
-                },
-                "ManagedPolicyArns": [
-                    "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
-                    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
-                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
-                    "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess",
-                    "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess",
-                    "arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess",
-                    "arn:aws:iam::aws:policy/AmazonCognitoPowerUser",
-                    "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
-                ],
-                "Policies": [ 
-                    {
-                        "PolicyName": "PutDataProtectionParameter",
-                        "PolicyDocument": {
-                            "Version" : "2012-10-17",
-                            "Statement": [ 
-                                {
-                                    "Effect": "Allow",
-                                    "Action": "ssm:PutParameter",
-                                    "Resource": "arn:aws:ssm:*:*:parameter/ImageRecognition/DataProtection/*"
-                                } 
-                            ]
-                        }
-                    } 
-                ]
-            }
-        },
-
-        "FrontendExecutionRole": {
-            "Type": "AWS::IAM::Role",
+        "BlazorWASMBucket": {
+            "Type": "AWS::S3::Bucket",
             "Description": "",
+            "DeletionPolicy": "Delete",
             "Properties": {
-                "AssumeRolePolicyDocument": {
-                    "Version": "2008-10-17",
-                    "Statement": [
-                        {
-                            "Sid": "",
-                            "Effect": "Allow",
-                            "Principal": {
-                                "Service": "ecs-tasks.amazonaws.com"
-                            },
-                            "Action": "sts:AssumeRole"
-                        }
-                    ]
-                },
-                "ManagedPolicyArns": [
-                    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
-                    "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
-                ]
+            "WebsiteConfiguration" : {
+                "IndexDocument": "index.html"
+                }
+            }
+        },
+        "S3BucketPolicy": {
+          "Type": "AWS::S3::BucketPolicy",
+          "Properties": {
+            "Bucket": {
+              "Ref": "BlazorWASMBucket"
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [{
+                "Action": ["s3:GetObject"],
+                "Effect": "Allow",
+                "Resource": { "Fn::Join": ["", ["arn:aws:s3:::", { "Ref": "BlazorWASMBucket" }, "/*"]]},
+                "Principal": {
+                    "CanonicalUser": {"Fn::GetAtt" : [ "CfOriginAccessIdentity", "S3CanonicalUserId"]}
+                }
+              }]
+            }
+          }
+        },
+
+        "CfOriginAccessIdentity": {
+            "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+            "Properties": {
+                "CloudFrontOriginAccessIdentityConfig": {
+                    "Comment": "Access S3 bucket content only through CloudFront"
+                }
             }
         },
 
-        "ECSSecurityGroup": {
-            "Type": "AWS::EC2::SecurityGroup",
-            "Description": "Security group controlling access to the containers surfacing our web application front end.",
-            "Properties": {
-                "VpcId": {
-                    "Ref": "ImageRecognitionVpc"
-                },
-                "GroupDescription": "Security Group for the ECS Service",
-                "SecurityGroupIngress": [
-                    {
-                        "CidrIp": "0.0.0.0/0",
-                        "FromPort": "80",
-                        "ToPort": "80",
-                        "IpProtocol": "tcp"
-                    }
-                ]
-            }
-        },
-
-        "LoadBalancer": {
-            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
-            "Description": "",
-            "Properties": {
-                "Type": "application",
-                "IpAddressType": "ipv4",
-                "Scheme": "internet-facing",
-                "SecurityGroups": [
-                    {
-                        "Ref": "ECSSecurityGroup"
-                    }
-                ],
-                "Subnets": [
-                    {
-                        "Ref": "SubnetA"
-                    },
-                    {
-                        "Ref": "SubnetB"
-                    },
-                    {
-                        "Ref": "SubnetC"
-                    }
-                ]
-            }
-        },
-
-        "HttpListener": {
-            "Type": "AWS::ElasticLoadBalancingV2::Listener",
-            "Description": "",
-            "Properties": {
-                "DefaultActions": [
-                    {
-                        "TargetGroupArn": {
-                            "Ref": "DefaultTargetGroup"
-                        },
-                        "Type": "forward"
-                    }
-                ],
-                "LoadBalancerArn": {
-                    "Ref": "LoadBalancer"
-                },
-                "Port": "80",
-                "Protocol": "HTTP"
-            }
-        },
-
-        "HttpsListener" : {
-            "Type" : "AWS::ElasticLoadBalancingV2::Listener",
-            "Condition" : "UseHttps",
+        "BlazorWASMDistribution" : {
+            "Type" : "AWS::CloudFront::Distribution",
             "Properties" : {
-                "DefaultActions": [
-                    {
-                        "TargetGroupArn": {
-                            "Ref": "DefaultTargetGroup"
+                "DistributionConfig" : {
+                    "DefaultCacheBehavior" : {
+                        "AllowedMethods" : [ "GET", "HEAD"],
+                        "CachedMethods": [ "GET", "HEAD"],
+                        "Compress": "false",
+                        "DefaultTTL": "86400",
+                        "TargetOriginId" : { "Fn::Join": ["-",[{"Ref": "AWS::StackName"},"s3-origin"]]},
+                        "ForwardedValues" : {
+                            "Headers": ["Origin"],
+                            "QueryString" : "false",
+                            "Cookies" : { "Forward" : "none" }
                         },
-                        "Type": "forward"
-                    }
-                ],
-                "LoadBalancerArn": {
-                    "Ref": "LoadBalancer"
-                },
-                "Port"            : "443",
-                "Protocol"        : "HTTPS",
-                "Certificates" : [
-					{"CertificateArn" : { "Ref" : "LoadbalancerCertificateArn" }}
-				]
-            }
-        },
-
-        "DefaultTargetGroup": {
-            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
-            "Description": "",
-            "Properties": {
-                "Port": "80",
-                "Protocol": "HTTP",
-                "TargetGroupAttributes": [
-					{"Key" : "stickiness.enabled", "Value" : "true" },
-					{"Key" : "stickiness.type", "Value" : "lb_cookie" }
-				],
-                "Targets": [],
-                "VpcId": {
-                    "Ref": "ImageRecognitionVpc"
-                },
-                "TargetType": "ip",				
-                "Name": "ImageRecognition-Default"
+                        "ViewerProtocolPolicy" : "redirect-to-https"
+                    },
+                    "Enabled" : "true",
+                    "DefaultRootObject" : "index.html",
+                    "IPV6Enabled": "false",
+                   "PriceClass" : "PriceClass_All",
+                   "Origins" : [ {
+                        "DomainName" : { "Fn::GetAtt" : [ "BlazorWASMBucket", "DomainName" ] },
+                        "Id" : { "Fn::Join": ["-",[{"Ref": "AWS::StackName"},"s3-origin"]]},
+                        "S3OriginConfig" : {
+                            "OriginAccessIdentity" : { "Fn::Sub": "origin-access-identity/cloudfront/${CfOriginAccessIdentity}"} 
+                            }
+                    }]
+                }
             }
         },
 
@@ -564,7 +295,7 @@
                         ]
                     ]
                 },
-                "GenerateSecret": true,
+                "GenerateSecret": false,
                 "UserPoolId": {"Ref": "UserPool"}
             }
         },
@@ -590,113 +321,6 @@
                 },
                 "Name": "/ImageRecognition/AWS/UserPoolClientId"
             }
-        },
-
-        "UserPoolClientLambdaRole":{
-		  "Type":"AWS::IAM::Role",
-		  "Properties":{
-			"AssumeRolePolicyDocument":{
-			  "Statement":[
-				{
-				  "Effect":"Allow",
-				  "Principal":{
-					"Service":[
-					  "lambda.amazonaws.com"
-					]
-				  },
-				  "Action":[
-					"sts:AssumeRole"
-				  ]
-				}
-			  ]
-			},
-			"Path":"/",
-			"Policies":[
-			  {
-				"PolicyName":"userpoolclient-lambda-role",
-				"PolicyDocument":{
-				  "Statement":[
-					{
-					  "Action":[
-						"cognito-idp:DescribeUserPoolClient",
-						"logs:CreateLogGroup",
-						"logs:CreateLogStream",
-						"logs:PutLogEvents"
-					  ],
-					  "Resource":"*",
-					  "Effect":"Allow"
-					}
-				  ],
-				  "Version":"2012-10-17"
-				}
-			  }
-			]
-		  }
-		},
-
-        "UserPoolClientLambda":
-        {
-            "Type": "AWS::Lambda::Function",
-            "Properties":{
-                "Code":{
-                    "ZipFile": {
-                        "Fn::Join": [
-                            "\n",
-                            [
-                                "const response = require('cfn-response');",
-                                "const aws = require('aws-sdk');",
-                                "const identity = new aws.CognitoIdentityServiceProvider();",
-                                "exports.handler = (event, context, callback) => {",
-                                " if (event.RequestType == 'Delete') { ",
-                                "   response.send(event, context, response.SUCCESS, {})",
-                                " }",
-                                " if (event.RequestType == 'Update' || event.RequestType == 'Create') {",
-                                "   const params = {",
-                                "     ClientId: event.ResourceProperties.clientId,",
-                                "     UserPoolId: event.ResourceProperties.userpoolId",
-                                "   };",
-                                "   identity.describeUserPoolClient(params).promise()",
-                                "     .then((res) => {",
-                                "       response.send(event, context, response.SUCCESS, {'appSecret': res.UserPoolClient.ClientSecret});",
-                                "     })",
-                                "     .catch((err) => {",
-                                "       response.send(event, context, response.FAILED, {err});",
-                                "     });",
-                                " }",
-                                "};"
-                            ]
-                        ]
-                    }
-                },
-                "Handler": "index.handler",
-                "Runtime": "nodejs14.x",
-                "Timeout": "300",
-                "Role": {
-                    "Fn::GetAtt" : [ "UserPoolClientLambdaRole", "Arn"]
-                }
-            },
-            "DependsOn": "UserPoolClientLambdaRole"
-        },
-        "UserPoolClientInputs":{
-            "Type": "Custom::LambdaCallout",
-            "Properties":{
-                "ServiceToken": {"Fn::GetAtt" : [ "UserPoolClientLambda", "Arn"]},
-                "clientId": {"Ref": "UserPoolClient"},
-                "userpoolId": {"Ref": "UserPool"}
-            },
-            "DependsOn": "UserPoolClientLambda"
-        },
-        "ParameterUserPoolClientSecret": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "Stores the name of the UserPoolClientSecret.",
-            "Properties": {
-                "Type": "String",
-                "Value": {
-                    "Fn::GetAtt" : [ "UserPoolClientInputs", "appSecret"]
-                    },
-                "Name": "/ImageRecognition/AWS/UserPoolClientSecret"
-            },
-            "DependsOn": "UserPoolClientInputs"
         },
 
         "ParameterTableAlbum": {
@@ -733,183 +357,16 @@
                 },
                 "Name": "/ImageRecognition/AppOptions/TableCommunicationConnection"
             }
-        },
-
-        "ParameterECSSecurityGroup": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "Stores the ID of the security group for our Fargate instances into Parameter Store",
-            "Properties": {
-                "Type": "String",
-                "Value": {
-                    "Ref": "ECSSecurityGroup"
-                },
-                "Name": "/ImageRecognition/ECSSecurityGroup"
-            }
-        },
-
-        "ParameterVpc": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "Stores the ID of the VPC into Parameter Store.",
-            "Properties": {
-                "Type": "String",
-                "Value": {
-                    "Ref": "ImageRecognitionVpc"
-                },
-                "Name": "/ImageRecognition/Vpc"
-            }
-        },
-
-        "ParameterLoadBalancerHost": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "The host of the load balancer.",
-            "Properties": {
-                "Type": "String",
-                "Name": "/ImageRecognition/LoadBalancerHost",
-                "Value" : { "Fn::If" : ["HasDnsName", {"Fn::Join" : [ "", ["https://", {"Ref" : "DnsName" }, "/"]]}, {"Fn::Join" : [ "", ["http://", {"Fn::GetAtt" : [ "LoadBalancer", "DNSName"]}, "/" ] ]}] }
-            }
-        },
-
-        "ParameterLoadBalancerListener": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "Stores the ID of the VPC into Parameter Store.",
-            "Properties": {
-                "Type": "String",
-                "Name": "/ImageRecognition/LoadBalancerListener",
-                "Value" : { "Fn::If" : ["UseHttps", {"Ref": "HttpsListener"}, {"Ref": "HttpListener"}] }
-            }
-        },
-
-        "ParameterSubnetA": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "Stores the ID of a one of our subnets for our Fargate instances into Parameter Store.",
-            "Properties": {
-                "Type": "String",
-                "Value": {
-                    "Ref": "SubnetA"
-                },
-                "Name": "/ImageRecognition/SubnetA"
-            }
-        },
-
-        "ParameterSubnetB": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "Stores the ID of a one of our subnets for our Fargate instances into Parameter Store.",
-            "Properties": {
-                "Type": "String",
-                "Value": {
-                    "Ref": "SubnetB"
-                },
-                "Name": "/ImageRecognition/SubnetB"
-            }
-        },
-
-        "ParameterSubnetC": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "Stores the ID of a one of our subnets for our Fargate instances into Parameter Store.",
-            "Properties": {
-                "Type": "String",
-                "Value": {
-                    "Ref": "SubnetC"
-                },
-                "Name": "/ImageRecognition/SubnetC"
-            }
-        },
-
-        "ParameterFrontendRepository": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "Stores the url of the repository holding container images of our web application front end into Parameter Store.",
-            "Properties": {
-                "Type": "String",
-                "Value": {
-                    "Fn::Join": [
-                        "",
-                        [
-                            {
-                                "Ref": "AWS::AccountId"
-                            },
-                            ".dkr.ecr.",
-                            {
-                                "Ref": "AWS::Region"
-                            },
-                            ".amazonaws.com/",
-                            {
-                                "Ref": "FrontendRepository"
-                            },
-                            ":latest"
-                        ]
-                    ]
-                },
-                "Name": "/ImageRecognition/FrontendRepository"
-            }
-        },
-
-        "ParameterFrontendTag": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "",
-            "Properties": {
-                "Type": "String",
-                "Value": {
-                    "Fn::Join" : [
-                        "", [
-                            { "Ref": "FrontendRepository" },
-                            ":latest"
-                        ]
-                    ]
-                },
-                "Name": "/ImageRecognition/FrontendTag"
-            }
-        },
-
-        "ParameterFrontendExecutionRole": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "Store the ARN of the role created for instance(s) surfacing our web application front end into Parameter Store.",
-            "Properties": {
-                "Type": "String",
-                "Value": {
-                    "Ref": "FrontendExecutionRole"
-                },
-                "Name": "/ImageRecognition/FrontendExecutionRole"
-            }
-        },
-
-        "ParameterFrontendTaskRole": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "",
-            "Properties": {
-                "Type": "String",
-                "Value": {
-                    "Ref": "FrontendTaskRole"
-                },
-                "Name": "/ImageRecognition/FrontendTaskRole"
-            }
-        },
-
-        "ParameterLoadBalancerName": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "",
-            "Properties": {
-                "Type": "String",
-                "Value": {
-                    "Ref": "LoadBalancer"
-                },
-                "Name": "/ImageRecognition/LoadBalancerName"
-            }
-        },
-
-        "ParameterTargetGroupArn": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "",
-            "Properties": {
-                "Type": "String",
-                "Value": {
-                    "Ref": "DefaultTargetGroup"
-                },
-                "Name": "/ImageRecognition/TargetGroupArn"
-            }
         }
     },
 
     "Outputs": {
-        
-    }
+        "BlazorWASMBucket": {
+            "Description": "Stores the S3 Bucket Name for Blazor WASM.",
+                "Value": {
+                    "Ref": "BlazorWASMBucket"
+                },
+            "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-WASMBucket" }}
+        }
+     }
 }

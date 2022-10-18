@@ -1,0 +1,19 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - yum update -y && yum install -y clang krb5-devel openssl-devel libicu llvm zip
+      - yum install -y tar gzip
+      - curl -LO https://dot.net/v1/dotnet-install.sh
+      - chmod +x dotnet-install.sh
+      - ./dotnet-install.sh -Channel 7.0 -Version latest
+      - export PATH=/root/.dotnet:$PATH
+  build:
+    commands:
+      - cd ./Application/UI/Blazor/ImageRecognition.BlazorWebAssembly
+      - dotnet publish "ImageRecognition.BlazorWebAssembly.csproj" -r linux-x64 -c Release --output publish
+artifacts:
+  files:
+    - ./Application/UI/Blazor/ImageRecognition.BlazorWebAssembly/publish/wwwroot/**/*
+  discard-paths: yes

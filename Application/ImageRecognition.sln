@@ -53,6 +53,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageRecognition.API.Client
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageRecognition.BlazorWebAssembly", "UI\Blazor\ImageRecognition.BlazorWebAssembly\ImageRecognition.BlazorWebAssembly.csproj", "{68A88420-73CB-40C0-8AED-2CCE282B8561}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageRecognition.BlazorFrontend", "UI\Blazor\ImageRecognition\ImageRecognition.BlazorFrontend.csproj", "{618BDDD3-6C5F-4388-B321-1CCA40C73EE5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -171,6 +173,14 @@ Global
 		{68A88420-73CB-40C0-8AED-2CCE282B8561}.Release|Any CPU.Build.0 = Release|Any CPU
 		{68A88420-73CB-40C0-8AED-2CCE282B8561}.Release|x86.ActiveCfg = Release|Any CPU
 		{68A88420-73CB-40C0-8AED-2CCE282B8561}.Release|x86.Build.0 = Release|Any CPU
+		{618BDDD3-6C5F-4388-B321-1CCA40C73EE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{618BDDD3-6C5F-4388-B321-1CCA40C73EE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{618BDDD3-6C5F-4388-B321-1CCA40C73EE5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{618BDDD3-6C5F-4388-B321-1CCA40C73EE5}.Debug|x86.Build.0 = Debug|Any CPU
+		{618BDDD3-6C5F-4388-B321-1CCA40C73EE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{618BDDD3-6C5F-4388-B321-1CCA40C73EE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{618BDDD3-6C5F-4388-B321-1CCA40C73EE5}.Release|x86.ActiveCfg = Release|Any CPU
+		{618BDDD3-6C5F-4388-B321-1CCA40C73EE5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -189,6 +199,7 @@ Global
 		{C55B40A2-2F90-41ED-9CB9-79F0FB5FAE0F} = {5DD25832-C50F-4456-AC6D-22E33544C593}
 		{D42B4E02-BFB7-491E-8A6E-7B1988D2B217} = {5DD25832-C50F-4456-AC6D-22E33544C593}
 		{68A88420-73CB-40C0-8AED-2CCE282B8561} = {E94B8A90-34BD-4F82-B641-1254DDF37CCA}
+		{618BDDD3-6C5F-4388-B321-1CCA40C73EE5} = {E94B8A90-34BD-4F82-B641-1254DDF37CCA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B53A70CE-0F03-41EB-B317-DA4B7CE3019A}
