@@ -255,7 +255,7 @@
                 "Environment" : {
 					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
                     "Type" : "LINUX_CONTAINER",
-                    "Image" : "aws/codebuild/standard:5.0",                    
+                    "Image" : "aws/codebuild/amazonlinux2-x86_64-standard:4.0",                    
                     "PrivilegedMode" : true
 				},
 		        "Source"      : {
@@ -574,7 +574,7 @@
 								},
                                 "InputArtifacts" : [
 									{
-										"Name" : "TheSource"
+										"Name" : "ImageRecognitionBlazorBundle"
 									}
 								],
 								"Configuration" : {

@@ -16,4 +16,4 @@ phases:
 artifacts:
   files:
     - ./Application/UI/Blazor/ImageRecognition.BlazorWebAssembly/publish/wwwroot/**/*
-  discard-paths: yes
+  discard-paths: no
