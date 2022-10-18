@@ -21,12 +21,11 @@ namespace ImageRecognition.BlazorWebAssembly
                 // Configure your authentication provider options here.
                 // For more information, see https://aka.ms/blazor-standalone-auth
                 builder.Configuration.Bind("Cognito", options.ProviderOptions);
-                
-                //options.ProviderOptions.MetadataUrl = "https://ph2ru2gzkh.execute-api.us-east-2.amazonaws.com/stage/.well-known/openid-configuration";
             });
 
             var appOptions = new AppOptions();
             builder.Configuration.Bind("AppOptions", appOptions);
+            
             builder.Services.AddSingleton(appOptions);
 
             builder.Services.AddScoped<IServiceClientFactory, ServiceClientFactory>();

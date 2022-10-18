@@ -4,15 +4,6 @@
   "Description": "An AWS Serverless Application that uses the ASP.NET Core framework running in Amazon Lambda.",
   
   "Parameters" : {
-		"ApplicationLoadBalancerHost" : {
-		    "Type" : "AWS::SSM::Parameter::Value<String>",
-            "Default" : "/ImageRecognition/LoadBalancerHost"
-		},
-		"ApplicationLoadBalancerListener" : {
-		    "Type" : "AWS::SSM::Parameter::Value<String>",
-            "Default" : "/ImageRecognition/LoadBalancerListener"
-		}
-
 	},
 
   "Conditions": {},
