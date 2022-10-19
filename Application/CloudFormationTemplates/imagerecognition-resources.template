@@ -373,10 +373,8 @@
             "Description": "Stores the Domain name of the distribution.",
             "Properties": {
                 "Type": "String",
-                "Value": {
-                    "Fn::GetAtt" : [ "BlazorWASMDistribution", "DomainName"]
-                },
-                "Name": "/ImageRecognition/AWS/CloudFrontDomainName"
+                "Value": {"Fn::Sub": "https://${BlazorWASMDistribution.DomainName}"},
+                "Name": "/ImageRecognition/AWS/CloudFrontDomain"
             }
         },
 
