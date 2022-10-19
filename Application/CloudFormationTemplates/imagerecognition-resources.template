@@ -294,7 +294,7 @@
                 "AllowedOAuthFlows": ["code", "implicit"],
                 "AllowedOAuthFlowsUserPoolClient": true,
                 "SupportedIdentityProviders": ["COGNITO"],
-                "AllowedOAuthScopes": ["Cognito", "email","openid","phone"],
+                "AllowedOAuthScopes": ["phone","email","openid","profile"],
                 "CallbackURLs": [{ "Fn::Sub": "https://${BlazorWASMDistribution.DomainName}/login-callback"}],
                 "LogoutURLs":[{ "Fn::Sub": "https://${BlazorWASMDistribution.DomainName}/logout-callback"}],
                 "UserPoolId": {"Ref": "UserPool"}
