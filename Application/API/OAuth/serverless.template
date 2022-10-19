@@ -4,11 +4,11 @@
     "Description": "",
 
     "Parameters": {
-        "AUTH_DOMAIN_PREFIX":{
+        "AuthDomainPrefix":{
             "Type": "AWS::SSM::Parameter::Value<String>",
             "Default": "/ImageRecognition/AWS/AuthDomainPrefix"
         },
-        "USER_POOL_ID": {
+        "UserPoolID": {
             "Type" : "AWS::SSM::Parameter::Value<String>",
             "Default" : "/ImageRecognition/AWS/UserPoolId"
         }
@@ -23,7 +23,7 @@
                 "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
                 "Environment": {
                     "Variables": {
-                        "AUTH_DOMAIN_PREFIX": {"Ref": "AUTH_DOMAIN_PREFIX"}
+                        "AUTH_DOMAIN_PREFIX": {"Ref": "AuthDomainPrefix"}
                     }
                 },
                 "Handler": "bootstrap",
@@ -50,7 +50,7 @@
                 "Tracing": "Active",
                 "Environment": {
                     "Variables": {
-                        "USER_POOL_ID": {"Ref": "USER_POOL_ID"}
+                        "USER_POOL_ID": {"Ref": "UserPoolID"}
                     }
                 },
                 "Handler": "bootstrap",
