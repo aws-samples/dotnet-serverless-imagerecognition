@@ -15,5 +15,5 @@ phases:
       - dotnet publish "ImageRecognition.BlazorWebAssembly.csproj" -r linux-x64 -c Release --output publish
 artifacts:
   files:
-    - /**/*
+    - '**/*'
   base-directory: ./Application/UI/Blazor/ImageRecognition.BlazorWebAssembly/publish/wwwroot/
