@@ -291,6 +291,12 @@
                     ]
                 },
                 "GenerateSecret": false,
+                "AllowedOAuthFlows": ["code", "implicit"],
+                "AllowedOAuthFlowsUserPoolClient": true,
+                "SupportedIdentityProviders": ["COGNITO"],
+                "AllowedOAuthScopes": ["Cognito", "email","openid","phone"],
+                "CallbackURLs": [{"Fn::Join": [ "/", {"Fn::GetAtt" : [ "BlazorWASMDistribution", "DomainName"]}, "login-callback"]}],
+                "LogoutURLs":[{"Fn::Join": [ "/", {"Fn::GetAtt" : [ "BlazorWASMDistribution", "DomainName"]}, "logout-callback"]}],
                 "UserPoolId": {"Ref": "UserPool"}
             }
         },
@@ -352,6 +358,18 @@
                     "Ref": "TableCommunicationConnection"
                 },
                 "Name": "/ImageRecognition/AppOptions/TableCommunicationConnection"
+            }
+        },
+
+        "ParameterCloudFrontDistribution": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the Domain name of the distribution.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Fn::GetAtt" : [ "BlazorWASMDistribution", "DomainName"]
+                },
+                "Name": "/ImageRecognition/AWS/CloudFrontDomainName"
             }
         }
     },
