@@ -300,7 +300,14 @@
                 "UserPoolId": {"Ref": "UserPool"}
             }
         },
-
+        
+        "UserPoolDomain": {
+            "Type" : "AWS::Cognito::UserPoolDomain",
+            "Properties" : {
+              "Domain" : {"Ref": "AWS::StackName"},
+              "UserPoolId" : {"Ref": "UserPool"}
+            }
+        },
         "ParameterUserPool": {
             "Type": "AWS::SSM::Parameter",
             "Description": "Stores the name of the UserPool for application.",
@@ -370,6 +377,16 @@
                     "Fn::GetAtt" : [ "BlazorWASMDistribution", "DomainName"]
                 },
                 "Name": "/ImageRecognition/AWS/CloudFrontDomainName"
+            }
+        },
+
+        "ParameterAuthDomainPrefix": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the Domain name of the distribution.",
+            "Properties": {
+                "Type": "String",
+                "Value": { "Ref": "UserPoolDomain" },
+                "Name": "/ImageRecognition/AWS/AuthDomainPrefix"
             }
         }
     },
