@@ -296,7 +296,7 @@
                 "SupportedIdentityProviders": ["COGNITO"],
                 "AllowedOAuthScopes": ["Cognito", "email","openid","phone"],
                 "CallbackURLs": [{"Fn::Join": [ "/", [{"Fn::GetAtt" : [ "BlazorWASMDistribution", "DomainName"]}, "login-callback"]]}],
-                "LogoutURLs":[{"Fn::Join": [ "/", {"Fn::GetAtt" : [ "BlazorWASMDistribution", "DomainName"]}, "logout-callback"]}],
+                "LogoutURLs":[{"Fn::Join": [ "/", [{"Fn::GetAtt" : [ "BlazorWASMDistribution", "DomainName"]}, "logout-callback"]]}],
                 "UserPoolId": {"Ref": "UserPool"}
             }
         },
