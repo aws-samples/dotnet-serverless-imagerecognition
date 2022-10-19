@@ -244,6 +244,27 @@
 		    }
 		},
 
+		"ImageRecognitionAuthAPIBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-OAuthProxy" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/amazonlinux2-x86_64-standard:4.0",                    
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Application/API/OAuth/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
 		"ImageRecognitionWASMBuild" : {
 		    "Type" : "AWS::CodeBuild::Project",
 		    "Properties" : {
@@ -335,6 +356,56 @@
 									"TemplatePath" : "TheSource::Application/CloudFormationTemplates/imagerecognition-resources.template"
 								},
                                 "RunOrder" : 1
+							}
+						]
+					},
+					{
+						"Name" : "ImageRecognition-OAuthProxy",
+                        "Actions" : [
+							{
+								"Name" : "Build-OAuthProxy",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "ImageRecognitionAuthAPIBuild"
+									}
+								],
+								"Configuration" : {
+									"ProjectName" : { "Ref" : "ImageRecognitionAuthAPIBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "CF-OAuthProxyAPI",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "ImageRecognitionAuthAPIBuild"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CREATE_UPDATE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-OAuthProxy" ] ]},
+									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "ImageRecognitionAuthAPIBuild::updated.template"
+								},
+                                "RunOrder" : 2
 							}
 						]
 					},
