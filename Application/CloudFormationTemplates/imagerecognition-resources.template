@@ -304,7 +304,7 @@
         "UserPoolDomain": {
             "Type" : "AWS::Cognito::UserPoolDomain",
             "Properties" : {
-              "Domain" : {"Ref": "AWS::StackName"},
+              "Domain" : "imagerecognition",
               "UserPoolId" : {"Ref": "UserPool"}
             }
         },
