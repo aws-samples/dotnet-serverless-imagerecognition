@@ -1,0 +1,121 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Transform": "AWS::Serverless-2016-10-31",
+    "Description": "",
+
+    "Parameters": {
+        "AUTH_DOMAIN_PREFIX":{
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/AWS/AuthDomainPrefix"
+        },
+        "USER_POOL_ID": {
+            "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/ImageRecognition/AWS/UserPoolId"
+        }
+    },
+
+    "Resources": {
+        "AuthorizeFunction": {
+            "Type": "AWS::Serverless::Function",
+            "Description" : "",
+            "Properties": {
+                "Tracing": "Active",
+                "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
+                "Environment": {
+                    "Variables": {
+                        "AUTH_DOMAIN_PREFIX": {"Ref": "AUTH_DOMAIN_PREFIX"}
+                    }
+                },
+                "Handler": "bootstrap",
+                "MemorySize": 1024,
+                "Timeout": 60,
+                "Runtime":"provided.al2",
+                "Architectures": ["x86_64"],
+                "CodeUri": "./authorize.zip",
+                "Events":{
+                  "Resource": {
+                    "Type": "Api",
+                    "Properties": {
+                      "Path": "/{proxy+}",
+                      "Method": "ANY"
+                    }
+                  }
+               }
+            }
+        },
+        "MetadataFunction": {
+            "Type": "AWS::Serverless::Function",
+            "Description" : "",
+            "Properties": {
+                "Tracing": "Active",
+                "Environment": {
+                    "Variables": {
+                        "USER_POOL_ID": {"Ref": "USER_POOL_ID"}
+                    }
+                },
+                "Handler": "bootstrap",
+                "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
+                "MemorySize": 1024,
+                "Timeout": 200,
+                "Runtime":"provided.al2",
+                "Architectures": ["x86_64"],
+                "CodeUri": "./metadata.zip",
+                "Events":{
+                  "Resource": {
+                    "Type": "Api",
+                    "Properties": {
+                      "Path": "/.well-known/openid-configuration",
+                      "Method": "GET"
+                    }
+                  }
+               }
+            }
+        },
+
+        "LambdaRole": {
+            "Type": "AWS::IAM::Role",
+            "Description" : "",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+                    "arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess",
+                    "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
+                ]
+            }
+        },
+
+        "ParameterStateMachineArn": {
+            "Type": "AWS::SSM::Parameter",
+            "Description" : "",
+            "Properties": {
+                "Type": "String",
+                "Value": { "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/" },
+                "Name": "/ImageRecognition/AppOptions/ImageRecognitionAuthUrl"
+            }
+        }
+    },
+
+    "Outputs": {
+        "StateMachineArn": {
+			"Description" : "Auth endpoint for production environment",
+            "Value": {"Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"}
+        }
+
+    }
+}
