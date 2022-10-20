@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using static System.Net.WebRequestMethods;
 
 namespace ImageRecognition.BlazorWebAssembly
 {
@@ -21,6 +22,7 @@ namespace ImageRecognition.BlazorWebAssembly
                 // Configure your authentication provider options here.
                 // For more information, see https://aka.ms/blazor-standalone-auth
                 builder.Configuration.Bind("Cognito", options.ProviderOptions);
+                options.ProviderOptions.MetadataUrl = "https://i7xv17y03l.execute-api.us-west-1.amazonaws.com/.well-known/openid-configuration";
             });
 
             var appOptions = new AppOptions();
