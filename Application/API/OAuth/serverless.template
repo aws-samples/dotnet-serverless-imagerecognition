@@ -105,7 +105,7 @@
             "Description" : "",
             "Properties": {
                 "Type": "String",
-                "Value": { "Fn::Sub": "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/" },
+                "Value": { "Fn::Sub": "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/" },
                 "Name": "/ImageRecognition/AppOptions/ImageRecognitionAuthUrl"
             }
         }
@@ -114,7 +114,7 @@
     "Outputs": {
         "ImageRecognitionAuthUrl": {
 			"Description" : "Auth endpoint for production environment",
-            "Value": {"Fn::Sub": "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"}
+            "Value": {"Fn::Sub": "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"}
         }
 
     }
