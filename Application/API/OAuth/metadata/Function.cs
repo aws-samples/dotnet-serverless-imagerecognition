@@ -47,7 +47,7 @@ public class Function
 
         var config = JsonSerializer.Deserialize(response, CustomJsonSerializerContext.Default.OpenIdConfiguration);
 
-        config.authorization_endpoint = $"https://{apigProxyEvent.RequestContext.DomainName}{apigProxyEvent.RequestContext.Http.Path}/authorize";
+        config.authorization_endpoint = $"https://{apigProxyEvent.RequestContext.DomainName}{apigProxyEvent.RawPath}/authorize";
 
         return new APIGatewayHttpApiV2ProxyResponse
         {

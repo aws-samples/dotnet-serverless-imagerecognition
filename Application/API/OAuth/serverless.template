@@ -34,7 +34,7 @@
                 "CodeUri": "./authorize.zip",
                 "Events":{
                   "Resource": {
-                    "Type": "Api",
+                    "Type": "HttpApi",
                     "Properties": {
                       "Path": "/{proxy+}",
                       "Method": "ANY"
@@ -62,7 +62,7 @@
                 "CodeUri": "./metadata.zip",
                 "Events":{
                   "Resource": {
-                    "Type": "Api",
+                    "Type": "HttpApi",
                     "Properties": {
                       "Path": "/.well-known/openid-configuration",
                       "Method": "GET"
