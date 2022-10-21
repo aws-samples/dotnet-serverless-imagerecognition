@@ -331,3 +331,5 @@ ASALocalRun/
 *.zip
 /Application/deleteme
 /Application/s3Trigger/updated.template
+/Application/UI/Blazor/ImageRecognition.WASM
+/Application/UI/Blazor/BlazorApp1

@@ -61,6 +61,10 @@ public class Function
 
     private static bool IsSilentAuth(APIGatewayHttpApiV2ProxyRequest apigProxyEvent)
     {
-        return apigProxyEvent.QueryStringParameters["prompt"] == "none";
+        if (apigProxyEvent.QueryStringParameters.ContainsKey("prompt"))
+        {
+            return apigProxyEvent.QueryStringParameters["prompt"] == "none";
+        }
+        return false;
     }
 }
