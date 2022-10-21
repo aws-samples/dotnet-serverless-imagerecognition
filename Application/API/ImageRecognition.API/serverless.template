@@ -5,7 +5,14 @@
   
   "Parameters" : {
 	},
-
+    "Globals":{
+        "Api" : {
+            "Cors" : {
+                "AllowMethods" : "'GET,POST,OPTIONS'",
+                "AllowOrigin": "'*'"
+            }
+        }
+    },
   "Conditions": {},
   "Resources": {
 
@@ -58,7 +65,7 @@
                 "Runtime":"dotnet6",
                 "CodeUri": "",
                 "Events":{
-                  "PutResource": {
+                  "AnyResource": {
                     "Type": "Api",
                     "Properties": {
                       "Path": "/{proxy+}",
