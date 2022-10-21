@@ -19,14 +19,7 @@ namespace ImageRecognition.BlazorWebAssembly
 
             builder.Services.AddOidcAuthentication(options =>
             {
-                // known issue with AppSettings.json file. https://github.com/dotnet/aspnetcore/issues/44007
-                //builder.Configuration.Bind("Cognito", options.ProviderOptions);
-
-                options.ProviderOptions.Authority = "https://i7xv17y03l.execute-api.us-west-1.amazonaws.com/";
-                options.ProviderOptions.ClientId = "522gdjc852ncq6mihvdmrp77ne";
-                options.ProviderOptions.RedirectUri = "https://d2ocsceqsz4y4r.cloudfront.net/login-callback";
-                options.ProviderOptions.PostLogoutRedirectUri = "https://d2ocsceqsz4y4r.cloudfront.net/logout-callback";
-                options.ProviderOptions.ResponseType = "id_token";
+                builder.Configuration.Bind("Cognito", options.ProviderOptions);
             });
 
             var appOptions = new AppOptions();
