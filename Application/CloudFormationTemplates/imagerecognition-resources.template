@@ -20,6 +20,10 @@
             "Type" : "AWS::SSM::Parameter::Value<String>",
             "Default" : "/ImageRecognition/AWS/BlazorS3BucketName",
             "Description" : "Blazor S3 Bucket."
+        },
+        "LambdaEdgeUrlRewriteARN":{
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/AWS/LambdaEdgeUrlRewriteARN"
         }
     },
 
@@ -242,7 +246,13 @@
                             "QueryString" : "false",
                             "Cookies" : { "Forward" : "none" }
                         },
-                        "ViewerProtocolPolicy" : "redirect-to-https"
+                        "ViewerProtocolPolicy" : "redirect-to-https",
+                        "LambdaFunctionAssociations": [
+                            {
+                                "EventType": "viewer-request",
+                                "LambdaFunctionARN": {"Ref": "LambdaEdgeUrlRewriteARN"}
+                            }
+                        ]
                     },
                     "Enabled" : "true",
                     "DefaultRootObject" : "index.html",
@@ -304,7 +314,7 @@
         "UserPoolDomain": {
             "Type" : "AWS::Cognito::UserPoolDomain",
             "Properties" : {
-              "Domain" : "imagerecognition",
+              "Domain" : { "Fn::Select" : [ "2", { "Fn::Split": [",", {"Ref": "S3BucketName"}]}] },
               "UserPoolId" : {"Ref": "UserPool"}
             }
         },
