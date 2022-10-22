@@ -314,7 +314,7 @@
         "UserPoolDomain": {
             "Type" : "AWS::Cognito::UserPoolDomain",
             "Properties" : {
-              "Domain" : { "Fn::Select" : [ "2", { "Fn::Split": [",", {"Ref": "S3BucketName"}]}] },
+              "Domain" : { "Fn::Select" : [ "2", { "Fn::Split": ["-", {"Ref": "S3BucketName"}]}] },
               "UserPoolId" : {"Ref": "UserPool"}
             }
         },
