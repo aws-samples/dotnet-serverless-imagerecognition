@@ -22,14 +22,14 @@ phases:
   build:
     commands:
       - cd ./Application/UI/Blazor/ImageRecognition.BlazorWebAssembly
-      - jq --arg newkey "$PARAMETER_COGNITO_AUTHORITY" '(.Cognito.Authority |= $newkey') wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
-      - jq --arg newkey "$PARAMETER_COGNITO_METADATAURL" '(.Cognito.MetadataUrl |= $newkey') wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
-      - jq --arg newkey "$PARAMETER_COGNITO_CLIENT_ID" '(.Cognito.ClientId |= $newkey') wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
-      - jq --arg newkey "$PARAMETER_COGNITO_REDIRECT_URI" '(.Cognito.RedirectUri |= $newkey') wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
-      - jq --arg newkey "$PARAMETER_COGNITO_POST_LOGOUT_REDIRECT_URI" '(.Cognito.PostLogoutRedirectUri |= $newkey') wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
-      - jq --arg newkey "$PARAMETER_APPOPTIONS_API" '(.AppOptions.ImageRecognitionApiGatewayUrl |= $newkey') wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
-      - jq --arg newkey "$PARAMETER_APPOPTIONS_WEB_SOCKET_API" '(.AppOptions.ImageRecognitionWebSocketAPI |= $newkey') wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
-      - jq --arg newkey "$PARAMETER_APPOPTIONS_PHOTO_STORAGE_BUCKET" '(.AppOptions.PhotoStorageBucket |= $newkey') wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
+      - jq --arg newkey "$PARAMETER_COGNITO_AUTHORITY" '(.Cognito.Authority |= $newkey)' wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
+      - jq --arg newkey "$PARAMETER_COGNITO_METADATAURL" '(.Cognito.MetadataUrl |= $newkey)' wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
+      - jq --arg newkey "$PARAMETER_COGNITO_CLIENT_ID" '(.Cognito.ClientId |= $newkey)' wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
+      - jq --arg newkey "$PARAMETER_COGNITO_REDIRECT_URI" '(.Cognito.RedirectUri |= $newkey)' wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
+      - jq --arg newkey "$PARAMETER_COGNITO_POST_LOGOUT_REDIRECT_URI" '(.Cognito.PostLogoutRedirectUri |= $newkey)' wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
+      - jq --arg newkey "$PARAMETER_APPOPTIONS_API" '(.AppOptions.ImageRecognitionApiGatewayUrl |= $newkey)' wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
+      - jq --arg newkey "$PARAMETER_APPOPTIONS_WEB_SOCKET_API" '(.AppOptions.ImageRecognitionWebSocketAPI |= $newkey)' wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
+      - jq --arg newkey "$PARAMETER_APPOPTIONS_PHOTO_STORAGE_BUCKET" '(.AppOptions.PhotoStorageBucket |= $newkey)' wwwroot/appsettings.json > tmp && mv tmp wwwroot/appsettings.json
 
       - dotnet publish "ImageRecognition.BlazorWebAssembly.csproj" -r linux-x64 -c Release --output publish
 artifacts:
