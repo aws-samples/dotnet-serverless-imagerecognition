@@ -23,6 +23,12 @@
 		     "Type" : "String",
 			 "Default": "",
 			 "Description" : "GitHub repository OAuth token"
+		 },
+		 "LambdaEdgeUrlRewriteARN": {
+			"Type" : "String",
+			"Default": "",
+			"Description" : "Lambda@Edge ARN for Blazor SPA URL Rewrite"
+		 
 		 }
 	},
 
@@ -131,12 +137,7 @@
 		"BlazorWASMBucket": {
             "Type": "AWS::S3::Bucket",
             "Description": "",
-            "DeletionPolicy": "Delete",
-            "Properties": {
-            "WebsiteConfiguration" : {
-                "IndexDocument": "index.html"
-                }
-            }
+            "DeletionPolicy": "Delete"
         },
 
 		"ParameterBlazorS3BucketName": {
@@ -157,6 +158,16 @@
                 "Type" : "String",
                 "Value" : {"Ref" : "ImageRecognitionArtifactStore"},
                 "Name" : "/ImageRecognition/ImageRecognitionArtifactStore"
+            }
+        },
+
+		"ParameterLambdaEdgeUrlRewriteARN": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the name of the S3 storage bucket to Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {"Ref": "LambdaEdgeUrlRewriteARN"},
+                "Name": "/ImageRecognition/AWS/LambdaEdgeUrlRewriteARN"
             }
         },
 

@@ -1,4 +1,14 @@
 version: 0.2
+env:
+   parameter-store:
+        PARAMETER_COGNITO_AUTHORITY: "/ImageRecognition/Cognito/Authority"
+        PARAMETER_COGNITO_METADATAURL: "/ImageRecognition/Cognito/MetadataUrl"
+        PARAMETER_COGNITO_CLIENT_ID: "/ImageRecognition/Cognito/ClientId"
+        PARAMETER_COGNITO_REDIRECT_URI: "/ImageRecognition/Cognito/RedirectUri"
+        PARAMETER_COGNITO_POST_LOGOUT_REDIRECT_URI: "/ImageRecognition/Cognito/PostLogoutRedirectUri"
+        PARAMETER_APPOPTIONS_API: "/ImageRecognition/AppOptions/ImageRecognitionApiGatewayUrl"
+        PARAMETER_APPOPTIONS_WEB_SOCKET_API: "/ImageRecognition/AppOptions/ImageRecognitionWebSocketAPI"
+        PARAMETER_APPOPTIONS_PHOTO_STORAGE_BUCKET: "/ImageRecognition/AppOptions/PhotoStorageBucket"
 
 phases:
   install:

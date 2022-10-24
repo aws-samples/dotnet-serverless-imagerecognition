@@ -396,6 +396,44 @@
                 "Value": { "Ref": "UserPoolDomain" },
                 "Name": "/ImageRecognition/AWS/AuthDomainPrefix"
             }
+        },
+
+        "ParameterCognitoAuthority": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": ".",
+            "Properties": {
+                "Type": "String",
+                "Value": { "Fn::Sub": "https://cognito-idp.${AWS::Region}.amazonaws.com/${ParameterUserPool}" },
+                "Name": "/ImageRecognition/Cognito/Authority"
+            }
+        },
+
+        "ParameterCognitoClientId": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": ".",
+            "Properties": {
+                "Type": "String",
+                "Value": { "Ref": "ParameterUserPoolClient"},
+                "Name": "/ImageRecognition/Cognito/ClientId"
+            }
+        },
+        "ParameterCognitoRedirectUri": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": ".",
+            "Properties": {
+                "Type": "String",
+                "Value": { "Fn::Sub": "${ParameterCloudFrontDistribution}/authentication/login-callback" },
+                "Name": "/ImageRecognition/Cognito/RedirectUri"
+            }
+        },
+        "ParameterCognitoLogoutRedirectUri": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": ".",
+            "Properties": {
+                "Type": "String",
+                "Value": { "Fn::Sub": "${ParameterCloudFrontDistribution}/authentication/logout-callback" },
+                "Name": "/ImageRecognition/Cognito/PostLogoutRedirectUri"
+            }
         }
     },
 

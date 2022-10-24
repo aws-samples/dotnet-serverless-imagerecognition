@@ -4,12 +4,17 @@
   "Description": "An AWS Serverless Application that uses the ASP.NET Core framework running in Amazon Lambda.",
   
   "Parameters" : {
+    "ParameterCloudFrontDistribution":{
+        "Type": "AWS::SSM::Parameter::Value<String>",
+        "Default": "/ImageRecognition/AWS/CloudFrontDomain"
+        }
 	},
     "Globals":{
         "Api" : {
             "Cors" : {
-                "AllowMethods" : "'GET,POST,OPTIONS'",
-                "AllowOrigin": "'*'"
+                "AllowMethods" : "'GET,POST,PUT,OPTIONS,DELETE'",
+                "AllowOrigin": { "Fn::Sub": "'${ParameterCloudFrontDistribution}'" },
+                "AllowHeaders": "'Content-type, authorization, X-Forwarded-For'"
             }
         }
     },

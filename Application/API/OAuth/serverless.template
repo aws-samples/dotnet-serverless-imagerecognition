@@ -108,6 +108,15 @@
                 "Value": { "Fn::Sub": "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/" },
                 "Name": "/ImageRecognition/AppOptions/ImageRecognitionAuthUrl"
             }
+        },
+        "ParameterCognitoMetadataUrl": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": ".",
+            "Properties": {
+                "Type": "String",
+                "Value": { "Fn::Sub": "${ParameterAuthUrl}.well-known/openid-configuration" },
+                "Name": "/ImageRecognition/Cognito/MetadataUrl"
+            }
         }
     },
 

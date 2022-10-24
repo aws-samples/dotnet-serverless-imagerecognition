@@ -2,7 +2,7 @@
 {
     public class AppOptions
     {
-        public string ImageRecognitionApiUrl { get; set; }
+        public string ImageRecognitionApiGatewayUrl { get; set; }
 
         public string ImageRecognitionWebSocketAPI { get; set; }
 

@@ -37,7 +37,7 @@ namespace ImageRecognition.BlazorWebAssembly
             var httpClient = await ConstructHttpClient();
             var albumClient = new AlbumClient(httpClient)
             {
-                BaseUrl = _appOptions.ImageRecognitionApiUrl
+                BaseUrl = _appOptions.ImageRecognitionApiGatewayUrl
             };
 
 
@@ -50,7 +50,7 @@ namespace ImageRecognition.BlazorWebAssembly
             var httpClient = await ConstructHttpClient();
             var photoClient = new PhotoClient(httpClient)
             {
-                BaseUrl = _appOptions.ImageRecognitionApiUrl
+                BaseUrl = _appOptions.ImageRecognitionApiGatewayUrl
             };
 
             return photoClient;
@@ -59,7 +59,7 @@ namespace ImageRecognition.BlazorWebAssembly
         public HttpClient CreateHttpClient()
         {
             var httpClient = new HttpClient() {
-                BaseAddress = new Uri(_appOptions.ImageRecognitionApiUrl)
+                BaseAddress = new Uri(_appOptions.ImageRecognitionApiGatewayUrl)
             };
 
             return httpClient;
