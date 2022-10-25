@@ -403,7 +403,7 @@
             "Description": ".",
             "Properties": {
                 "Type": "String",
-                "Value": { "Fn::Sub": "https://cognito-idp.${AWS::Region}.amazonaws.com/${ParameterUserPool}" },
+                "Value": { "Fn::Sub": "https://cognito-idp.${AWS::Region}.amazonaws.com/${ParameterUserPool.Value}" },
                 "Name": "/ImageRecognition/Cognito/Authority"
             }
         },
@@ -413,7 +413,7 @@
             "Description": ".",
             "Properties": {
                 "Type": "String",
-                "Value": { "Ref": "ParameterUserPoolClient"},
+                "Value": { "Fn::Sub": "${ParameterUserPoolClient.Value}"},
                 "Name": "/ImageRecognition/Cognito/ClientId"
             }
         },
@@ -422,7 +422,7 @@
             "Description": ".",
             "Properties": {
                 "Type": "String",
-                "Value": { "Fn::Sub": "${ParameterCloudFrontDistribution}/authentication/login-callback" },
+                "Value": { "Fn::Sub": "${ParameterCloudFrontDistribution.Value}/authentication/login-callback" },
                 "Name": "/ImageRecognition/Cognito/RedirectUri"
             }
         },
@@ -431,7 +431,7 @@
             "Description": ".",
             "Properties": {
                 "Type": "String",
-                "Value": { "Fn::Sub": "${ParameterCloudFrontDistribution}/authentication/logout-callback" },
+                "Value": { "Fn::Sub": "${ParameterCloudFrontDistribution.Value}/authentication/logout-callback" },
                 "Name": "/ImageRecognition/Cognito/PostLogoutRedirectUri"
             }
         }
