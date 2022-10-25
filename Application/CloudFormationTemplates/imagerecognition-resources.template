@@ -274,6 +274,7 @@
             "Properties":{
                 "UserPoolName": {"Fn::Join": ["-",[{"Ref": "AWS::StackName"},"user-pool"]]},
                 "UsernameAttributes": ["email"],
+                "AutoVerifiedAttributes": ["email"],
                 "Schema": [{"AttributeDataType" : "String", "Name" : "email", "Required" : false}]
             }
         },
