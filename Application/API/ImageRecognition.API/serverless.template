@@ -54,7 +54,13 @@
 			    ]
             }
         },
-        
+        "ImageRecognitionAPI" : {
+            "Type" : "AWS::Serverless::Api",
+            "Properties" : {
+                "StageName" : "Prod",
+                "TracingEnabled": true
+            }
+        },
         "AspNetCoreFunction": {
           "Type": "AWS::Serverless::Function",
           "Properties": {
@@ -69,12 +75,14 @@
                 "Timeout": 30,
                 "Runtime":"dotnet6",
                 "CodeUri": "",
+                "Tracing": "Active",
                 "Events":{
                   "AnyResource": {
                     "Type": "Api",
                     "Properties": {
                       "Path": "/{proxy+}",
-                      "Method": "ANY"
+                      "Method": "ANY",
+                      "RestApiId" : {"Ref": "ImageRecognitionAPI"}
                     }
                   }
                }
