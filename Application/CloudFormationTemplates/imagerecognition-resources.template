@@ -272,17 +272,9 @@
         "UserPool": {
             "Type": "AWS::Cognito::UserPool",
             "Properties":{
-                "UserPoolName": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "user-pool"
-                        ]
-                    ]
-                }
+                "UserPoolName": {"Fn::Join": ["-",[{"Ref": "AWS::StackName"},"user-pool"]]},
+                "UsernameAttributes": ["email"],
+                "Schema": [{"AttributeDataType" : "String", "Name" : "email", "Required" : false}]
             }
         },
 
