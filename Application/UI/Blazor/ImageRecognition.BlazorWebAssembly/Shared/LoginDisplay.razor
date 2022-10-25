@@ -4,7 +4,7 @@
 
 <AuthorizeView>
     <Authorized>
-        Hello, @context.User.Identity?.Name!
+        Hello, @context.User?.Claims?.FirstOrDefault(x => x.Type == "email")?.Value!
         <button class="nav-link btn btn-link" @onclick="BeginLogOut">Log out</button>
     </Authorized>
     <NotAuthorized>
