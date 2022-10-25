@@ -93,7 +93,7 @@
             "Description": "",
             "Properties": {
                 "Type": "String",
-                "Value": { "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/" },
+                "Value": { "Fn::Sub": "https://${ImageRecognitionAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/" },
                 "Name": "/ImageRecognition/AppOptions/ImageRecognitionApiGatewayUrl"
             }
         }
@@ -103,7 +103,7 @@
 	    "ApiURL": {
           "Description": "API endpoint URL for Prod environment",
           "Value": {
-            "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+            "Fn::Sub": "https://${ImageRecognitionAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
           }
         }
     }
