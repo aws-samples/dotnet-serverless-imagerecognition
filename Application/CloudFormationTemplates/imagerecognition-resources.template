@@ -20,10 +20,6 @@
             "Type" : "AWS::SSM::Parameter::Value<String>",
             "Default" : "/ImageRecognition/AWS/BlazorS3BucketName",
             "Description" : "Blazor S3 Bucket."
-        },
-        "LambdaEdgeUrlRewriteARN":{
-            "Type": "AWS::SSM::Parameter::Value<String>",
-            "Default": "/ImageRecognition/AWS/LambdaEdgeUrlRewriteARN"
         }
     },
 
@@ -246,18 +242,20 @@
                             "QueryString" : "false",
                             "Cookies" : { "Forward" : "none" }
                         },
-                        "ViewerProtocolPolicy" : "redirect-to-https",
-                        "LambdaFunctionAssociations": [
-                            {
-                                "EventType": "viewer-request",
-                                "LambdaFunctionARN": {"Ref": "LambdaEdgeUrlRewriteARN"}
-                            }
-                        ]
+                        "ViewerProtocolPolicy" : "redirect-to-https"
                     },
                     "Enabled" : "true",
                     "DefaultRootObject" : "index.html",
                     "IPV6Enabled": "false",
                    "PriceClass" : "PriceClass_All",
+                   "CustomErrorResponses":[
+                      {
+                          "ErrorCachingMinTTL" : 1440,
+                          "ErrorCode" : 403,
+                          "ResponseCode" : 404,
+                          "ResponsePagePath" : "404.html"
+                      }
+                    ],
                    "Origins" : [ {
                         "DomainName" : {"Fn::Sub": "${S3BucketName}.s3.amazonaws.com" },
                         "Id" : {"Fn::Sub": "s3-origin-${S3BucketName}" },
