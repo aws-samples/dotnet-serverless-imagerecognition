@@ -4,10 +4,12 @@ The Image Recognition application illustrates modern, serverless, .NET applicati
 Image recognition is an application that enables registered and signed-in users to upload and organize photos in Albums. After the  photo is submitted, the backend workflow processes photos and extracts metadata from the image such as geolocation, size/format, time, etc. It then uses image recognition to tag objects in the photo. In parallel, it also produces a thumbnail of the photo.
 
 The Image Recognition sample application demonstrates:
-* Building ASP.NET Web API project using JWT tokens vended by Cognito to handle authentication. The project is hosted in AWS Lambda using Lambda Container support and the AWS .NET tooling that simplifies using .NET5 Container with Lambda.
-* Building frontend using ASP.NET new server-side Blazor web framework hosted in ECS using AWS Fargate.
-* Using API Gateway's WebSocket support to build realtime two-way communication application. This project connect backend components to the frontend allowing backend systems to easily communicate their status to the user in real time.
-* Using AWS Step Functions to orchestrate a serverless processing workflow built in .NET. This project orchestrate backend using AWS Lambda, Amazon S3, Amazon DynamoDB and Amazon Rekognition.
+* Building **Blazor Web Assembly** UI using **OIDC authentication** backed by Amazon Cognito.
+* Deploying Blazor Web Assembly UI to private Amazon S3 bucket and serving UI through Amazon CloudFront.
+* Building and deploying .NET Lambda functions using **Native AOT complication**.
+* Building ASP.NET Web API project using **JWT tokens vended by Cognito** to handle authentication.
+* Using **API Gateway's WebSocket** support to build realtime two-way communication application. This project connect backend components to the frontend allowing backend systems to easily communicate their status to the user in real time.
+* Using **AWS Step Functions** to orchestrate a serverless processing workflow built in .NET. This project orchestrate backend using AWS Lambda, Amazon S3, Amazon DynamoDB and Amazon Rekognition.
 
 This repository contains sample code for all the Lambda functions depicted in the diagram below as well as an AWS CloudFormation template for creating the functions and related resources. There is also a test web app that you can run to interact with the backend.
 
@@ -15,6 +17,8 @@ This repository contains sample code for all the Lambda functions depicted in th
 
 Following the instructions in this sample you will gain experience in deploying to and using the following AWS services, with the tools you are already familiar with - namely Visual Studio and AWS extensions for the dotnet CLI:
 
+* Amazon S3
+* Amazon CloudFront
 * Amazon Cognito
 * Amazon DynamoDB
 * Amazon ECS
@@ -23,7 +27,14 @@ Following the instructions in this sample you will gain experience in deploying 
 * AWS Step Functions
 * AWS Systems Manager
 
-# Walkthrough of the architecture
+# Walkthrough of the Frontend architecture
+1. User browse to the Image Recognition Single Page App (SPA). SPA is hosted on private Amazon S3 bucket and is served through an Amazon Cloudfront with access restricted by [!origin access identity (OAI)](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html).
+1. User authenticates using OpenID Connect (OIDC), backed by Amazon Cognito.
+1. After successful signin, User uploads the image to PhotoRepo S3 bucket under the private/{userid}/uploads prefix.
+1. Image Recognition SPA app opens the websocket connection using AWS API Gateway Web Socket support and reads the image processing events published asynchronously by Backend architecture.
+1. Image Recognition App shows the status of image being processed and displays the image thumbnail with objects detected once the processing is complete by the backend processing.
+
+# Walkthrough of the Backend architecture
 1. An image is uploaded to the PhotoRepo S3 bucket under the private/{userid}/uploads prefix
 1. The S3 upload event triggers the S3Trigger Lambda function, which kicks off an execution of the ImageProcStateMachine in AWS Step Functions, passing in the S3 bucket and object key as input parameters.
 1. The ImageProcStateMachine has the following sub-steps:
@@ -39,7 +50,7 @@ Follow these instructions to deploy the application (both backend and frontend):
 1. Fork this repository in your GitHub account.
 2. Click Launch Stack to launch the template in your account and then click Next.
    
-    [![Launch image recognition with CloudFormation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=image-recognition&templateURL=https://windows-dev-env-ec2.s3.amazonaws.com/dotnet-serverless-dev-cfn/imagerecognition-pipeline.template)
+    [![Launch image recognition with CloudFormation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=img-recog&templateURL=https://windows-dev-env-ec2.s3.amazonaws.com/dotnet-serverless-dev-cfn/imagerecognition-pipeline.template)
 
 1. In the parameters section 
    1. Add Stack name as "ImageRecognition".
