@@ -57,7 +57,7 @@
                                 <div class="ui card">
                                     <div class="ui active transition visible dimmer" style="display: flex !important;">
                                         <div class="content">
-                                            <div class="ui text loader"> Processing </div>
+                                            <div class="ui text loader"> @photo.Status </div>
                                         </div>
                                     </div>
                                 </div>
@@ -193,9 +193,10 @@
 
             Loaded = true;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            NavigationManager.NavigateTo("Identity/Account/Login", true);
+            Console.WriteLine(ex.Message);
+            NavigationManager.NavigateTo("authentication/login-callback", true);
         }
     }
 
