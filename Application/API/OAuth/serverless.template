@@ -1,0 +1,130 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Transform": "AWS::Serverless-2016-10-31",
+    "Description": "",
+
+    "Parameters": {
+        "AuthDomainPrefix":{
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/AWS/AuthDomainPrefix"
+        },
+        "UserPoolID": {
+            "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/ImageRecognition/AWS/UserPoolId"
+        }
+    },
+
+    "Resources": {
+        "AuthorizeFunction": {
+            "Type": "AWS::Serverless::Function",
+            "Description" : "",
+            "Properties": {
+                "Tracing": "Active",
+                "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
+                "Environment": {
+                    "Variables": {
+                        "AUTH_DOMAIN_PREFIX": {"Ref": "AuthDomainPrefix"}
+                    }
+                },
+                "Handler": "bootstrap",
+                "MemorySize": 1024,
+                "Timeout": 60,
+                "Runtime":"provided.al2",
+                "Architectures": ["x86_64"],
+                "CodeUri": "./authorize.zip",
+                "Events":{
+                  "Resource": {
+                    "Type": "HttpApi",
+                    "Properties": {
+                      "Path": "/{proxy+}",
+                      "Method": "ANY"
+                    }
+                  }
+               }
+            }
+        },
+        "MetadataFunction": {
+            "Type": "AWS::Serverless::Function",
+            "Description" : "",
+            "Properties": {
+                "Tracing": "Active",
+                "Environment": {
+                    "Variables": {
+                        "USER_POOL_ID": {"Ref": "UserPoolID"}
+                    }
+                },
+                "Handler": "bootstrap",
+                "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
+                "MemorySize": 1024,
+                "Timeout": 200,
+                "Runtime":"provided.al2",
+                "Architectures": ["x86_64"],
+                "CodeUri": "./metadata.zip",
+                "Events":{
+                  "Resource": {
+                    "Type": "HttpApi",
+                    "Properties": {
+                      "Path": "/.well-known/openid-configuration",
+                      "Method": "GET"
+                    }
+                  }
+               }
+            }
+        },
+
+        "LambdaRole": {
+            "Type": "AWS::IAM::Role",
+            "Description" : "",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+                    "arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess",
+                    "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
+                ]
+            }
+        },
+
+        "ParameterAuthUrl": {
+            "Type": "AWS::SSM::Parameter",
+            "Description" : "",
+            "Properties": {
+                "Type": "String",
+                "Value": { "Fn::Sub": "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/" },
+                "Name": "/ImageRecognition/AppOptions/ImageRecognitionAuthUrl"
+            }
+        },
+        "ParameterCognitoMetadataUrl": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": ".",
+            "Properties": {
+                "Type": "String",
+                "Value": { "Fn::Sub": "${ParameterAuthUrl.Value}.well-known/openid-configuration" },
+                "Name": "/ImageRecognition/Cognito/MetadataUrl"
+            }
+        }
+    },
+
+    "Outputs": {
+        "ImageRecognitionAuthUrl": {
+			"Description" : "Auth endpoint for production environment",
+            "Value": {"Fn::Sub": "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"}
+        }
+
+    }
+}

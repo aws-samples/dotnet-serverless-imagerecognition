@@ -27,8 +27,6 @@
 	},
 
 	"Resources" : {
-
-
 		"CodePipelineRole":{
 		  "Type":"AWS::IAM::Role",
 		  "Properties":{
@@ -124,41 +122,29 @@
             }
         },
 
-		"FrontendCluster": {
-            "Type": "AWS::ECS::Cluster",
-            "Description": "",
-            "Properties": {
-                "ClusterName": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "Frontend"
-                        ]
-                    ]
-                }
-            }
-        },
-
-		"ParameterFrontendCluster": {
-            "Type": "AWS::SSM::Parameter",
-            "Description": "Stores the ID of the cluster defined for our Fargate instances into Parameter Store.",
-            "Properties": {
-                "Type": "String",
-                "Value": {
-                    "Ref": "FrontendCluster"
-                },
-                "Name": "/ImageRecognition/FrontendCluster"
-            }
-        },
-
 		"ImageRecognitionArtifactStore" : {
 		    "Type" : "AWS::S3::Bucket",
 		    "Properties" : {
 		    }
 		},
+
+		"BlazorWASMBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Description": "",
+            "DeletionPolicy": "Delete"
+        },
+
+		"ParameterBlazorS3BucketName": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the connection ids for the websocket connections made in the client.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "BlazorWASMBucket"
+                },
+                "Name": "/ImageRecognition/AWS/BlazorS3BucketName"
+            }
+        },
 
 		"ParameterImageRecognitionArtifactStore" : {
             "Type" : "AWS::SSM::Parameter",
@@ -178,9 +164,9 @@
 		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-S3TriggerLambdaFunctionBuild" ] ]},
 		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
                 "Environment" : {
-					"ComputeType" : "BUILD_GENERAL1_SMALL",
+					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
                     "Type" : "LINUX_CONTAINER",
-                    "Image" : "aws/codebuild/standard:5.0",
+                    "Image" : "aws/codebuild/amazonlinux2-x86_64-standard:4.0",
                     "PrivilegedMode" : true
 				},
 		        "Source"      : {
@@ -199,9 +185,9 @@
 		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ImageRecognitionStepFunctions" ] ]},
 		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
                 "Environment" : {
-					"ComputeType" : "BUILD_GENERAL1_SMALL",
+					"ComputeType" : "BUILD_GENERAL1_LARGE",
                     "Type" : "LINUX_CONTAINER",
-                    "Image" : "aws/codebuild/standard:5.0",
+                    "Image" : "aws/codebuild/amazonlinux2-x86_64-standard:4.0",
                     "PrivilegedMode" : true
 				},
 		        "Source"      : {
@@ -220,7 +206,7 @@
 		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-Communications" ] ]},
 		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
                 "Environment" : {
-					"ComputeType" : "BUILD_GENERAL1_SMALL",
+					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
                     "Type" : "LINUX_CONTAINER",
                     "Image" : "aws/codebuild/standard:5.0",
                     "PrivilegedMode" : true
@@ -243,7 +229,7 @@
                 "Environment" : {
 					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
                     "Type" : "LINUX_CONTAINER",
-                    "Image" : "aws/codebuild/standard:5.0",                    
+                    "Image" : "aws/codebuild/standard:6.0",                    
                     "PrivilegedMode" : true
 				},
 		        "Source"      : {
@@ -253,22 +239,43 @@
 		    }
 		},
 
-		"ImageRecognitionFrontendBuild" : {
+		"ImageRecognitionAuthAPIBuild" : {
 		    "Type" : "AWS::CodeBuild::Project",
 		    "Properties" : {
 		        "Artifacts" : {
 					"Type" : "CODEPIPELINE"
 		        },
-		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-Blazor" ] ]},
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-OAuthProxy" ] ]},
 		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
                 "Environment" : {
 					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
                     "Type" : "LINUX_CONTAINER",
-                    "Image" : "aws/codebuild/standard:5.0",                    
+                    "Image" : "aws/codebuild/amazonlinux2-x86_64-standard:4.0",                    
                     "PrivilegedMode" : true
 				},
 		        "Source"      : {
-		            "BuildSpec" : "Application/UI/Blazor/ImageRecognition/buildspec.yml",
+		            "BuildSpec" : "Application/API/OAuth/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
+		"ImageRecognitionWASMBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-BlazorWASM" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/amazonlinux2-x86_64-standard:4.0",                    
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Application/UI/Blazor/ImageRecognition.BlazorWebAssembly/buildspec.yml",
 		            "Type"      : "CODEPIPELINE"
 		        }
 		    }
@@ -344,6 +351,56 @@
 									"TemplatePath" : "TheSource::Application/CloudFormationTemplates/imagerecognition-resources.template"
 								},
                                 "RunOrder" : 1
+							}
+						]
+					},
+					{
+						"Name" : "ImageRecognition-OAuthProxy",
+                        "Actions" : [
+							{
+								"Name" : "Build-OAuthProxy",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "ImageRecognitionAuthAPIBuild"
+									}
+								],
+								"Configuration" : {
+									"ProjectName" : { "Ref" : "ImageRecognitionAuthAPIBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "CF-OAuthProxyAPI",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "ImageRecognitionAuthAPIBuild"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CREATE_UPDATE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-OAuthProxy" ] ]},
+									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "ImageRecognitionAuthAPIBuild::updated.template"
+								},
+                                "RunOrder" : 2
 							}
 						]
 					},
@@ -569,37 +626,15 @@
 									}
 								],
                                 "Configuration" : {
-									"ProjectName" : { "Ref" : "ImageRecognitionFrontendBuild" }
+									"ProjectName" : { "Ref" : "ImageRecognitionWASMBuild" }
 								},
                                 "RunOrder" : 1
 							},
 							{
-								"Name" : "Create-ECSService",
+								"Name" : "Create-S3StaticFile",
 								"ActionTypeId" : {
 									"Category" : "Deploy",
-                                    "Provider" : "CloudFormation",
-                                    "Owner" : "AWS",
-                                    "Version" : "1"
-								},
-                                "InputArtifacts" : [
-									{
-										"Name" : "TheSource"
-									}
-								],
-								"Configuration" : {
-									"ActionMode" : "CREATE_UPDATE",
-									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ECSFrontend" ] ]},
-									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
-									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
-									"TemplatePath" : "TheSource::Application/UI/Blazor/ImageRecognition/ECS-Service.template"
-								},
-                                "RunOrder" : 2
-							},
-							{
-								"Name" : "Deploy-BlazorFrontend",
-                                "ActionTypeId" : {
-									"Category" : "Deploy",
-                                    "Provider" : "ECS",
+                                    "Provider" : "S3",
                                     "Owner" : "AWS",
                                     "Version" : "1"
 								},
@@ -608,12 +643,11 @@
 										"Name" : "ImageRecognitionBlazorBundle"
 									}
 								],
-                                "Configuration" : {
-									"ClusterName" : { "Ref" : "FrontendCluster" },
-									"ServiceName":  "Frontend",
-									"FileName":  "imagedefinitions.json"
+								"Configuration" : {
+									"BucketName": { "Ref" : "BlazorWASMBucket" },
+									"Extract": "true"
 								},
-								"RunOrder" : 3
+                                "RunOrder" : 2
 							}
 						]
 					}

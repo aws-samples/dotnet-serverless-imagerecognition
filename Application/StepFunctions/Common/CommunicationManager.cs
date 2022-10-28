@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.ApiGatewayManagementApi;
@@ -10,7 +11,6 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
 using Microsoft.Extensions.Caching.Memory;
-using Newtonsoft.Json;
 
 namespace Common
 {
@@ -51,7 +51,7 @@ namespace Common
             if (string.IsNullOrEmpty(_ddbTableName))
                 return;
 
-            var payload = JsonConvert.SerializeObject(evnt);
+            var payload = JsonSerializer.Serialize(evnt);
             var stream = new MemoryStream(Encoding.UTF8.GetBytes(payload));
 
 

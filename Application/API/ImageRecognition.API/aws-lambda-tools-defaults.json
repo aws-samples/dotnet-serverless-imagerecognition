@@ -1,20 +1,22 @@
+
 {
-  "Information": [
-    "This file provides default values for the deployment wizard inside Visual Studio and the AWS Lambda commands added to the .NET Core CLI.",
-    "To learn more about the Lambda commands with the .NET Core CLI execute the following command at the command line in the project root directory.",
-    "dotnet lambda help",
-    "All the command line options for the Lambda command can be specified in this file."
-  ],
-  "profile": "",
-  "region": "",
-  "configuration": "Release",
-  "function-runtime": "dotnet6",
-  "function-memory-size": 256,
-  "function-timeout": 30,
-  "function-handler": "ImageRecognition.API::ImageRecognition.API.LambdaEntryPoint::FunctionHandlerAsync",
-  "docker-host-build-output-dir": "./bin/Release/net6.0/linux-x64/publish",
-  "template": "serverless.template",
-  "stack-name": "ImageRecognitionAPI",
-  "s3-prefix": "image-recognition/api",
-  "s3-bucket": "dotnet-image-recognition"
+    "Information" : [
+        "This file provides default values for the deployment wizard inside Visual Studio and the AWS Lambda commands added to the .NET Core CLI.",
+        "To learn more about the Lambda commands with the .NET Core CLI execute the following command at the command line in the project root directory.",
+        "dotnet lambda help",
+        "All the command line options for the Lambda command can be specified in this file."
+    ],
+    "profile"     : "",
+    "region"      : "",
+    "configuration" : "Release",
+    "function-runtime" : "dotnet6",
+    "function-memory-size" : 256,
+    "function-timeout"     : 30,
+    "function-handler"     : "ImageRecognition.API::ImageRecognition.API.LambdaEntryPoint::FunctionHandlerAsync",
+    "docker-host-build-output-dir" : "./bin/Release/net6.0/linux-x64/publish",
+    "template"                     : "serverless.template",
+    "stack-name"                   : "ImageRecognitionAPI",
+    "s3-prefix"                    : "image-recognition/api",
+    "s3-bucket"                    : "img-imagerecognitionartifactstore-12acumvjm8twe",
+    "template-parameters"          : "\"ApplicationLoadBalancerHost\"=\"/ImageRecognition/LoadBalancerHost\";\"ApplicationLoadBalancerListener\"=\"/ImageRecognition/LoadBalancerListener\""
 }

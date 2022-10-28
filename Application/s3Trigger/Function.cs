@@ -13,59 +13,60 @@ using Amazon.StepFunctions;
 using Amazon.StepFunctions.Model;
 using Amazon.Util;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
-using Newtonsoft.Json;
-
-// Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-[assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
+using Amazon.Lambda.RuntimeSupport;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using System.Diagnostics.CodeAnalysis;
+using Amazon.DynamoDBv2.Model;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Globalization;
 
 namespace s3Trigger
 {
     public class Function
     {
-        private const string STATE_MACHINE_ARN = "STATE_MACHINE_ARN";
-        private const string PHOTO_TABLE = "PHOTO_TABLE";
-
+        private static readonly string STATE_MACHINE_ARN = Environment.GetEnvironmentVariable("STATE_MACHINE_ARN") ?? string.Empty;
+        private static readonly string PHOTO_TABLE = Environment.GetEnvironmentVariable("PHOTO_TABLE") ?? string.Empty;
         private static readonly IAmazonDynamoDB _ddbClient = new AmazonDynamoDBClient();
         private static readonly IAmazonStepFunctions _stepClient = new AmazonStepFunctionsClient();
 
-        private readonly DynamoDBContext _ddbContext;
-
-        public Function()
+        static Function()
         {
             AWSSDKHandler.RegisterXRayForAllServices();
-
-            StateMachineArn = Environment.GetEnvironmentVariable(STATE_MACHINE_ARN);
-
-            AWSConfigsDynamoDB.Context
-                .AddMapping(new TypeMapping(typeof(Photo), Environment.GetEnvironmentVariable(PHOTO_TABLE)));
-
-            _ddbContext = new DynamoDBContext(_ddbClient);
         }
 
-        private string StateMachineArn { get; }
-
         /// <summary>
-        ///     A simple function that takes a string and returns both the upper and lower case version of the string.
+        /// The main entry point for the custom runtime.
         /// </summary>
-        /// <param name="input"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public async Task FunctionHandler(S3Event evnt, ILambdaContext context)
+        /// <param name="args"></param>
+        private static async Task Main()
+        {
+            Func<S3Event, ILambdaContext, Task> handler = FunctionHandler;
+            await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<CustomJsonSerializerContext>(options =>
+            {
+                options.PropertyNameCaseInsensitive = true;
+            }))
+                .Build()
+                .RunAsync();
+        }
+
+        public static async Task FunctionHandler(S3Event evnt, ILambdaContext context)
         {
             var bucket = evnt.Records[0].S3.Bucket.Name;
             var key = WebUtility.UrlDecode(evnt.Records[0].S3.Object.Key);
 
-            Console.WriteLine(bucket);
-            Console.WriteLine(key);
+            Console.WriteLine($"Bucket: {bucket}");
+            Console.WriteLine($"key: {key}");
 
             var photoData = key.Split("/").Reverse().Take(2).ToArray();
 
             var photoId = photoData[0];
             var userId = photoData[1];
 
-            Console.WriteLine(photoId);
+            Console.WriteLine($"Parsed photoId: {photoId}");
 
-            var input = new
+            var input = new SfnInput
             {
                 Bucket = bucket,
                 SourceKey = key,
@@ -76,20 +77,32 @@ namespace s3Trigger
 
             var stepResponse = await _stepClient.StartExecutionAsync(new StartExecutionRequest
             {
-                StateMachineArn = StateMachineArn,
+                StateMachineArn = STATE_MACHINE_ARN,
                 Name = $"{MakeSafeName(key, 80)}",
-                Input = JsonConvert.SerializeObject(input)
+                Input = JsonSerializer.Serialize(input, CustomJsonSerializerContext.Default.SfnInput)
             }).ConfigureAwait(false);
 
-            var photo = new Photo
+            int status = (int)ProcessingStatus.Running;
+
+            var request = new UpdateItemRequest
             {
-                PhotoId = photoId,
-                SfnExecutionArn = stepResponse.ExecutionArn,
-                ProcessingStatus = ProcessingStatus.Running,
-                UpdatedDate = DateTime.UtcNow
+                Key = new Dictionary<string, AttributeValue>()
+                {
+                    { "PhotoId", new AttributeValue { S = photoId } }
+                },
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>()
+                {
+                    {":sfnArn",new AttributeValue { S = stepResponse.ExecutionArn }},
+                    {":status",new AttributeValue { S = status.ToString() }},
+                    {":date",new AttributeValue { S = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fff'Z'", CultureInfo.InvariantCulture)}},
+                },
+
+                UpdateExpression = "SET SfnExecutionArn = :sfnArn, ProcessingStatus = :status, UpdatedDate = :date",
+
+                TableName = PHOTO_TABLE
             };
 
-            await _ddbContext.SaveAsync(photo).ConfigureAwait(false);
+            await _ddbClient.UpdateItemAsync(request);
         }
 
         public static string MakeSafeName(string displayName, int maxSize)
@@ -107,5 +120,6 @@ namespace s3Trigger
 
             return name;
         }
+
     }
 }

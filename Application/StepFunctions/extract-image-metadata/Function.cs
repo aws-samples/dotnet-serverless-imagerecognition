@@ -1,29 +1,40 @@
+using System;
 using System.IO;
 using System.Net;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
+using Amazon.Lambda.RuntimeSupport;
+using Amazon.Lambda.Serialization.SystemTextJson;
 using Amazon.S3;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Common;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-
-// Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-//[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
-[assembly: LambdaSerializer(typeof(NewtonJsonSerializer))]
 
 namespace extract_image_metadata
 {
     public class Function
     {
-        public Function()
+        private static IAmazonS3 S3Client { get; }
+
+        static Function()
         {
             AWSSDKHandler.RegisterXRayForAllServices();
             S3Client = new AmazonS3Client();
         }
 
-        private IAmazonS3 S3Client { get; }
+        /// <summary>
+        /// The main entry point for the custom runtime.
+        /// </summary>
+        /// <param name="args"></param>
+        private static async Task Main()
+        {
+            Func<ExecutionInput, ILambdaContext, Task<ImageMetadata>> handler = FunctionHandler;
+            await LambdaBootstrapBuilder.Create(handler, new SourceGeneratorLambdaJsonSerializer<CustomJsonSerializerContext>(options => {
+                options.PropertyNameCaseInsensitive = true;
+            }))
+                .Build()
+                .RunAsync();
+        }
 
         /// <summary>
         ///     A simple function that takes a s3 bucket input and extract metadata of Image.
@@ -31,7 +42,7 @@ namespace extract_image_metadata
         /// <param name="input"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public async Task<ImageMetadata> FunctionHandler(ExecutionInput state, ILambdaContext context)
+        public static async Task<ImageMetadata> FunctionHandler(ExecutionInput state, ILambdaContext context)
         {
             var logger = new ImageRecognitionLogger(state, context);
 

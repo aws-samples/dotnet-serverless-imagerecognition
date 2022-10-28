@@ -10,7 +10,7 @@ namespace ImageRecognition.API
     {
         public static string GetUsername(ClaimsPrincipal user)
         {
-            var claim = user.FindFirst("cognito:username");
+            var claim = user.FindFirst("username");
             return claim?.Value;
         }
 

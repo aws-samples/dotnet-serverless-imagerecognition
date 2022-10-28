@@ -11,6 +11,10 @@
         "StateMachineArn":{
             "Type": "AWS::SSM::Parameter::Value<String>",
             "Default": "/ImageRecognition/AppOptions/StateMachineArn"
+        },
+        "CloudFrontDomain":{
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/ImageRecognition/AWS/CloudFrontDomain"
         }
     },
 
@@ -20,7 +24,26 @@
             "Type": "AWS::S3::Bucket",
             "Description": "",
             "DeletionPolicy": "Retain",
-            "Properties": {}
+            "Properties": {
+            "CorsConfiguration": {
+                    "CorsRules": [
+                        {
+                            "AllowedHeaders": [
+                                "*"
+                            ],
+                            "AllowedMethods": [
+                                "GET","PUT"
+                            ],
+                            "AllowedOrigins": [
+                                {"Ref": "CloudFrontDomain"}
+                            ],
+                            "ExposedHeaders": [
+                                ""
+                            ]
+                        }
+                    ]
+                }
+            }
         },
 
         "S3Trigger": {
@@ -35,11 +58,12 @@
                         "STATE_MACHINE_ARN": {"Ref": "StateMachineArn"}
                     }
                 },
-                "Handler": "s3Trigger::s3Trigger.Function::FunctionHandler",
-                "MemorySize": 256,
+                "Handler": "bootstrap",
+                "MemorySize": 1024,
                 "Timeout": 60,
-                "CodeUri": ".",
-                "Runtime":"dotnet6",
+                "CodeUri": "./s3Trigger.zip",
+                "Runtime":"provided.al2",
+                "Architectures": ["x86_64"],
                 "Events":{
                     "CreatePhotoEvent":{
                         "Type": "S3",

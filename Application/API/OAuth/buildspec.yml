@@ -1,0 +1,34 @@
+version: 0.2
+
+env:
+    parameter-store:
+        S3_BUCKET: "/ImageRecognition/ImageRecognitionArtifactStore"
+phases:
+  install:
+    commands:
+      - yum update -y && yum install -y clang krb5-devel openssl-devel libicu llvm zip
+      - yum install -y tar gzip
+      - curl -LO https://dot.net/v1/dotnet-install.sh
+      - chmod +x dotnet-install.sh
+      - ./dotnet-install.sh -Channel 7.0 -Version latest
+      - export PATH=/root/.dotnet:$PATH
+      - dotnet tool install -g Amazon.Lambda.Tools
+      - export PATH="$PATH:/root/.dotnet/tools"
+  build:
+    commands:
+      - cd ./Application/API/OAuth
+      - dotnet publish "authorize/authorize.csproj" -r linux-x64 -c Release --self-contained true --output "authorize/publish"
+      - cp "authorize/publish/bootstrap" bootstrap
+      - zip authorize.zip bootstrap
+      - rm bootstrap
+
+      - dotnet publish "metadata/metadata.csproj" -r linux-x64 -c Release --self-contained true --output "metadata/publish"
+      - cp "metadata/publish/bootstrap" bootstrap
+      - zip metadata.zip bootstrap
+      - rm bootstrap
+
+      - dotnet lambda package-ci --template serverless.template --output-template updated.template --s3-bucket $S3_BUCKET --s3-prefix auth
+artifacts:
+  files:
+    - ./Application/API/OAuth/updated.template
+  discard-paths: yes

@@ -20,6 +20,9 @@
     <Compile Include="imagerecognition-resources.template">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="LambdaEdge-UrlRedirect-us-east-1.template">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
   </PropertyGroup>

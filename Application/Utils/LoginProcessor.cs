@@ -33,7 +33,7 @@ namespace CognitoLogin
             try
             {
                 var provider = new AmazonCognitoIdentityProviderClient(new AnonymousAWSCredentials(), RegionEndpoint.GetBySystemName(this._userPoolOptions.Region));
-                var userPool = new CognitoUserPool(this._userPoolOptions.UserPoolId, this._userPoolOptions.UserPoolClientId, provider, this._userPoolOptions.UserPoolClientSecret);
+                var userPool = new CognitoUserPool(this._userPoolOptions.UserPoolId, this._userPoolOptions.UserPoolClientId, provider);
 
                 var username = ConsoleUtilties.Prompt("Enter user name:", false);
                 var password = ConsoleUtilties.Prompt("Enter password:", true);

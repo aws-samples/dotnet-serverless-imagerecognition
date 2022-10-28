@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Tokens;
 using NSwag;
 using NSwag.Generation.Processors.Security;
 
@@ -67,20 +68,20 @@ namespace ImageRecognition.API
                     var region = Configuration["AWS:Region"];
                     if (string.IsNullOrEmpty(region)) region = FallbackRegionFactory.GetRegionEndpoint().SystemName;
 
-                    var audience = Configuration["AWS:UserPoolClientId"];
+                    //var audience = Configuration["AWS:UserPoolClientId"];
                     var authority = $"https://cognito-idp.{region}.amazonaws.com/" + Configuration["AWS:UserPoolId"];
 
-                    Console.WriteLine($"Configure JWT option, Audience: {audience}, Authority: {authority}");
+                    Console.WriteLine($"Configure JWT option, Authority: {authority}");
 
-                    options.Audience = audience;
+                    //options.Audience = audience;
                     options.Authority = authority;
-                });
 
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("Admin", policy =>
-                    policy.RequireClaim("cognito:groups", "Admin"));
-            });
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateAudience = false
+                    };
+
+                });
 
             services.AddControllers();
 
@@ -119,10 +120,12 @@ namespace ImageRecognition.API
 
             app.UseHttpsRedirection();
 
+            app.UseCors(options => options.AllowAnyOrigin());
+
             // Register the Swagger generator and the Swagger UI middlewares
             app.UseOpenApi();
             app.UseSwaggerUi3();
-
+            
             app.UseRouting();
 
             app.UseAuthorization();

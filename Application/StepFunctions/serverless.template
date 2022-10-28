@@ -34,10 +34,11 @@
                 "Handler": "transform-metadata::transform_metadata.Function::FunctionHandler",
                 "MemorySize": 256,
                 "Timeout": 60,
-                "Runtime":"dotnet6",
+                "Runtime":"provided.al2",
+                "Architectures": ["x86_64"],
                 "Code": {
                     "S3Bucket": "",
-                    "S3Key": "./transform-metadata"
+                    "S3Key": "./transform-metadata.zip"
                 }
             }
         },
@@ -55,10 +56,11 @@
                 "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
                 "MemorySize": 1024,
                 "Timeout": 200,
-                "Runtime":"dotnet6",
+                "Runtime":"provided.al2",
+                "Architectures": ["x86_64"],
                 "Code": {
                     "S3Bucket": "",
-                    "S3Key": "./extract-image-metadata"
+                    "S3Key": "./extract-image-metadata.zip"
                 }
             }
         },
@@ -70,10 +72,11 @@
                 "Handler": "store-image-metadata::store_image_metadata.Function::FunctionHandler",
                 "Role": { "Fn::GetAtt": ["StoreMetaDataFunctionRole", "Arn"] },
                 "MemorySize": 512,
-                "Runtime":"dotnet6",
+                "Runtime":"provided.al2",
+                "Architectures": ["x86_64"],
                 "Code": {
                     "S3Bucket": "",
-                    "S3Key": "./store-image-metadata"
+                    "S3Key": "./store-image-metadata.zip"
                 },
                 "Environment": {
                     "Variables": {
@@ -97,10 +100,11 @@
                 "Role": { "Fn::GetAtt": ["RekognitionFunctionRole", "Arn"] },
                 "MemorySize": 1536,
                 "Timeout": 300,
-                "Runtime":"dotnet6",
+                "Runtime":"provided.al2",
+                "Architectures": ["x86_64"],
                 "Code": {
                     "S3Bucket": "",
-                    "S3Key": "./rekognition"
+                    "S3Key": "./rekognition.zip"
                 }
             }
         },
@@ -118,10 +122,11 @@
                 "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
                 "MemorySize": 1536,
                 "Timeout": 300,
-                "Runtime":"dotnet6",
+                "Runtime":"provided.al2",
+                "Architectures": ["x86_64"],
                  "Code": {
                     "S3Bucket": "",
-                    "S3Key": "./thumbnail"
+                    "S3Key": "./thumbnail.zip"
                 }
             }
         },
