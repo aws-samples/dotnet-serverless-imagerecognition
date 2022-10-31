@@ -46,6 +46,12 @@
             }
         },
 
+        "ProcessRawImageFunctionDLQ": {
+            "Type": "AWS::SQS::Queue",
+            "Description": "Creates a dead letter queue to which failed Lambda function invocations will be posted. You can use this in conjunction with the mock .NET Lambda test tool in Visual Studio, Visual Studio Code or Visual Studio for Mac to debug the failed invocation locally with the same inputs.",
+            "Properties": {}
+        },
+
         "S3Trigger": {
             "Type": "AWS::Serverless::Function",
             "Description" : "massages JSON of extracted image metadata",
@@ -64,6 +70,15 @@
                 "CodeUri": "./s3Trigger.zip",
                 "Runtime":"provided.al2",
                 "Architectures": ["x86_64"],
+                "DeadLetterQueue": {
+                    "Type": "SQS",
+                    "TargetArn": {
+                        "Fn::GetAtt": [
+                            "ProcessRawImageFunctionDLQ",
+                            "Arn"
+                        ]
+                    }
+                },
                 "Events":{
                     "CreatePhotoEvent":{
                         "Type": "S3",
