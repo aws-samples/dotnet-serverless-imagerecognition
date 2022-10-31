@@ -120,6 +120,7 @@
                     "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
                     "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
                     "arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonSQSFullAccess",
                     "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess",
                     "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
                 ]
