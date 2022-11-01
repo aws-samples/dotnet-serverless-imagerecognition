@@ -62,6 +62,8 @@ namespace CognitoLogin
 
                 Console.WriteLine($"User id token:{Environment.NewLine}{user.SessionTokens.IdToken}");
 
+                Console.WriteLine($"User access token:{Environment.NewLine}{user.SessionTokens.AccessToken}");
+
                 var jwtHandler = new JwtSecurityTokenHandler();
                 var jsonToken = jwtHandler.ReadJwtToken(user.SessionTokens.IdToken);
 

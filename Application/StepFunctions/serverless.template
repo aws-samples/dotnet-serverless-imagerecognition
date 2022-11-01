@@ -263,7 +263,11 @@
                 ]
             }
         },
-
+        "ProcessStateMachineDLQ": {
+            "Type": "AWS::SQS::Queue",
+            "Description": "Creates a dead letter queue to which failed Lambda function invocations will be posted. You can use this in conjunction with the mock .NET Lambda test tool in Visual Studio, Visual Studio Code or Visual Studio for Mac to debug the failed invocation locally with the same inputs.",
+            "Properties": {}
+        },
         "StateMachineRole": {
             "Type": "AWS::IAM::Role",
             "Description" : "",
@@ -283,7 +287,8 @@
                     ]
                 },
                 "ManagedPolicyArns": [
-                    "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
+                    "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess",
+                    "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
                 ],
                 "Policies": [
                     {

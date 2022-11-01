@@ -14,6 +14,12 @@
             "ImageIdentifyError"
           ],
           "Next": "NotSupportedImageType"
+        },
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "PushToDeadLetterQueue"
         }
       ],
       "Retry": [
@@ -25,11 +31,12 @@
         },
         {
           "ErrorEquals": [
-            "States.ALL"
+            "States.TaskFailed",
+            "States.Timeout"
           ],
           "IntervalSeconds": 1,
           "MaxAttempts": 2,
-          "BackoffRate": 1.5
+          "BackoffRate": 2
         }
       ]
     },
@@ -47,7 +54,15 @@
               "StringEquals": "PNG"
             }
           ],
-          "Next": "TransformMetadata"
+          "Next": "TransformMetadata",
+          "Catch": [
+            {
+              "ErrorEquals": [
+                "States.ALL"
+              ],
+              "Next": "PushToDeadLetterQueue"
+            }
+          ]
         }
       ],
       "Default": "NotSupportedImageType"
@@ -57,6 +72,14 @@
       "Resource": "${TransformMetadataFunction.Arn}",
       "InputPath": "$.extractedMetadata",
       "ResultPath": "$.extractedMetadata",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "PushToDeadLetterQueue"
+        }
+      ],
       "Retry": [
         {
           "ErrorEquals": [
@@ -64,7 +87,7 @@
           ],
           "IntervalSeconds": 1,
           "MaxAttempts": 2,
-          "BackoffRate": 1.5
+          "BackoffRate": 2
         }
       ],
       "Next": "ParallelProcessing"
@@ -83,6 +106,14 @@
             "Rekognition": {
               "Type": "Task",
               "Resource": "${RekognitionFunction.Arn}",
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "PushToDeadLetterQueue"
+                }
+              ],
               "Retry": [
                 {
                   "ErrorEquals": [
@@ -103,6 +134,14 @@
             "Thumbnail": {
               "Type": "Task",
               "Resource": "${GenerateThumbnailFunction.Arn}",
+              "Catch": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "Next": "PushToDeadLetterQueue"
+                }
+              ],
               "Retry": [
                 {
                   "ErrorEquals": [
@@ -126,6 +165,14 @@
       "Resource": "${StoreImageMetadataFunction.Arn}",
       "InputPath": "$",
       "ResultPath": "$.storeResult",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "PushToDeadLetterQueue"
+        }
+      ],
       "Retry": [
         {
           "ErrorEquals": [
@@ -136,6 +183,15 @@
           "BackoffRate": 1.5
         }
       ],
+      "End": true
+    },
+    "PushToDeadLetterQueue": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sqs:sendMessage",
+      "Parameters": {
+        "QueueUrl": "https://sqs.${AWS::Region}.amazonaws.com/${ProcessStateMachineDLQ.QueueName}",
+        "MessageBody.$": "$.input.message"
+      },
       "End": true
     }
   }

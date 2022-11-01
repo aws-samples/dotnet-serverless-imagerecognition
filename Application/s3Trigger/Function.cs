@@ -78,7 +78,7 @@ namespace s3Trigger
             var stepResponse = await _stepClient.StartExecutionAsync(new StartExecutionRequest
             {
                 StateMachineArn = STATE_MACHINE_ARN,
-                Name = $"{MakeSafeName(key, 80)}",
+                Name = $"{MakeSafeName(photoId, 80)}",
                 Input = JsonSerializer.Serialize(input, CustomJsonSerializerContext.Default.SfnInput)
             }).ConfigureAwait(false);
 
