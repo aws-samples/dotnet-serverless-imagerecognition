@@ -11,24 +11,12 @@
       "Catch": [
         {
           "ErrorEquals": [
-            "ImageIdentifyError"
-          ],
-          "Next": "NotSupportedImageType"
-        },
-        {
-          "ErrorEquals": [
             "States.ALL"
           ],
           "Next": "PushToDeadLetterQueue"
         }
       ],
       "Retry": [
-        {
-          "ErrorEquals": [
-            "ImageIdentifyError"
-          ],
-          "MaxAttempts": 0
-        },
         {
           "ErrorEquals": [
             "States.TaskFailed",
@@ -54,15 +42,7 @@
               "StringEquals": "PNG"
             }
           ],
-          "Next": "TransformMetadata",
-          "Catch": [
-            {
-              "ErrorEquals": [
-                "States.ALL"
-              ],
-              "Next": "PushToDeadLetterQueue"
-            }
-          ]
+          "Next": "TransformMetadata"
         }
       ],
       "Default": "NotSupportedImageType"
@@ -92,13 +72,16 @@
       ],
       "Next": "ParallelProcessing"
     },
-    "NotSupportedImageType": {
-      "Type": "Fail",
-      "Cause": "Image type not supported!",
-      "Error": "FileTypeNotSupported"
-    },
     "ParallelProcessing": {
       "Type": "Parallel",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "PushToDeadLetterQueue"
+        }
+      ],
       "Branches": [
         {
           "StartAt": "Rekognition",
@@ -106,14 +89,6 @@
             "Rekognition": {
               "Type": "Task",
               "Resource": "${RekognitionFunction.Arn}",
-              "Catch": [
-                {
-                  "ErrorEquals": [
-                    "States.ALL"
-                  ],
-                  "Next": "PushToDeadLetterQueue"
-                }
-              ],
               "Retry": [
                 {
                   "ErrorEquals": [
@@ -134,14 +109,6 @@
             "Thumbnail": {
               "Type": "Task",
               "Resource": "${GenerateThumbnailFunction.Arn}",
-              "Catch": [
-                {
-                  "ErrorEquals": [
-                    "States.ALL"
-                  ],
-                  "Next": "PushToDeadLetterQueue"
-                }
-              ],
               "Retry": [
                 {
                   "ErrorEquals": [
@@ -189,10 +156,15 @@
       "Type": "Task",
       "Resource": "arn:aws:states:::sqs:sendMessage",
       "Parameters": {
-        "QueueUrl": "https://sqs.${AWS::Region}.amazonaws.com/${ProcessStateMachineDLQ.QueueName}",
-        "MessageBody.$": "$.input.message"
+        "QueueUrl": "${ProcessStateMachineDLQ}",
+        "MessageBody.$": "$"
       },
-      "End": true
+      "Next": "CatchAllFailures"
+    },
+    "CatchAllFailures": {
+      "Type": "Fail",
+      "Cause": "Backend processing failed",
+      "Error": "States.ALL"
     }
   }
 }
