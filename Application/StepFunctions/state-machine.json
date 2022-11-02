@@ -45,7 +45,7 @@
           "Next": "TransformMetadata"
         }
       ],
-      "Default": "NotSupportedImageType"
+      "Default": "PushToDeadLetterQueue"
     },
     "TransformMetadata": {
       "Type": "Task",
