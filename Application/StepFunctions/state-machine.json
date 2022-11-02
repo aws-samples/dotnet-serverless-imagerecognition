@@ -10,10 +10,9 @@
       "Next": "ImageTypeCheck",
       "Catch": [
         {
-          "ErrorEquals": [
-            "States.ALL"
-          ],
-          "Next": "PushToDeadLetterQueue"
+          "ErrorEquals": ["States.ALL"],
+          "Next": "PushToDeadLetterQueue",
+          "ResultPath": "$.error"
         }
       ],
       "Retry": [
@@ -57,7 +56,8 @@
           "ErrorEquals": [
             "States.ALL"
           ],
-          "Next": "PushToDeadLetterQueue"
+          "Next": "PushToDeadLetterQueue",
+          "ResultPath": "$.error"
         }
       ],
       "Retry": [
@@ -79,7 +79,8 @@
           "ErrorEquals": [
             "States.ALL"
           ],
-          "Next": "PushToDeadLetterQueue"
+          "Next": "PushToDeadLetterQueue",
+          "ResultPath": "$.error"
         }
       ],
       "Branches": [
@@ -137,7 +138,8 @@
           "ErrorEquals": [
             "States.ALL"
           ],
-          "Next": "PushToDeadLetterQueue"
+          "Next": "PushToDeadLetterQueue",
+          "ResultPath": "$.error"
         }
       ],
       "Retry": [
@@ -159,11 +161,11 @@
         "QueueUrl": "${ProcessStateMachineDLQ}",
         "MessageBody.$": "$"
       },
-      "Next": "CatchAllFailures"
+      "Next": "FailWorkflow"
     },
-    "CatchAllFailures": {
+    "FailWorkflow": {
       "Type": "Fail",
-      "Cause": "Backend processing failed",
+      "Cause": "Backend image processing failed",
       "Error": "States.ALL"
     }
   }
