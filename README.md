@@ -6,7 +6,7 @@ Image recognition is an application that enables registered and signed-in users 
 The Image Recognition sample application demonstrates:
 * Building **Blazor Web Assembly** UI using **OIDC authentication** backed by Amazon Cognito.
 * Deploying Blazor Web Assembly UI to private Amazon S3 bucket and serving UI through Amazon CloudFront.
-* Building and deploying .NET Lambda functions using **Native AOT complication**.
+* Building and deploying **Native AOT** Lambda functions.
 * Building ASP.NET Web API project using **JWT tokens vended by Cognito** to handle authentication.
 * Using **API Gateway's WebSocket** support to build realtime two-way communication application. This project connect backend components to the frontend allowing backend systems to easily communicate their status to the user in real time.
 * Using **AWS Step Functions** to orchestrate a serverless processing workflow built in .NET. This project orchestrate backend using AWS Lambda, Amazon S3, Amazon DynamoDB and Amazon Rekognition.
