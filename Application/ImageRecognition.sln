@@ -31,8 +31,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "thumbnail", "StepFunctions\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "transform-metadata", "StepFunctions\transform-metadata\transform-metadata.csproj", "{69FB6109-B5F8-4EBA-9F3A-CB167527E21E}"
 EndProject
-Project("{22325025-CDA3-4736-83CB-2D32D2FCC215}") = "CloudFormationTemplates", "CloudFormationTemplates\CloudFormationTemplates.cfproj", "{99999999-9999-9999-9999-999999999999}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "API", "API", "{642F8BD5-6487-4D1A-9715-53B91C94A3DF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageRecognition.API", "API\ImageRecognition.API\ImageRecognition.API.csproj", "{54BE2EEE-ACBD-489C-A7AB-E4F4BF2A5BDC}"
@@ -62,6 +60,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "metadata", "API\OAuth\metadata\metadata.csproj", "{1E2229D0-AB3E-4403-8D6B-C53CA3D8C7E1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "authorize", "API\OAuth\authorize\authorize.csproj", "{CBAAA39C-57E9-43B7-8D58-784DCD0EBF36}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CloudFormationTemplates", "CloudFormationTemplates", "{44AD9DFA-76C4-460D-8452-B9814CA342B4}"
+	ProjectSection(SolutionItems) = preProject
+		CloudFormationTemplates\imagerecognition-pipeline.template = CloudFormationTemplates\imagerecognition-pipeline.template
+		CloudFormationTemplates\imagerecognition-resources.template = CloudFormationTemplates\imagerecognition-resources.template
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -127,12 +131,6 @@ Global
 		{69FB6109-B5F8-4EBA-9F3A-CB167527E21E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{69FB6109-B5F8-4EBA-9F3A-CB167527E21E}.Release|x86.ActiveCfg = Release|Any CPU
 		{69FB6109-B5F8-4EBA-9F3A-CB167527E21E}.Release|x86.Build.0 = Release|Any CPU
-		{99999999-9999-9999-9999-999999999999}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{99999999-9999-9999-9999-999999999999}.Debug|x86.ActiveCfg = Debug|x86
-		{99999999-9999-9999-9999-999999999999}.Debug|x86.Build.0 = Debug|x86
-		{99999999-9999-9999-9999-999999999999}.Release|Any CPU.ActiveCfg = Release|x86
-		{99999999-9999-9999-9999-999999999999}.Release|x86.ActiveCfg = Release|x86
-		{99999999-9999-9999-9999-999999999999}.Release|x86.Build.0 = Release|x86
 		{54BE2EEE-ACBD-489C-A7AB-E4F4BF2A5BDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{54BE2EEE-ACBD-489C-A7AB-E4F4BF2A5BDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{54BE2EEE-ACBD-489C-A7AB-E4F4BF2A5BDC}.Debug|x86.ActiveCfg = Debug|Any CPU
